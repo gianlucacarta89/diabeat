@@ -6,7 +6,7 @@
    (stanno in IndexedDB, non qui).
    Le richieste verso altri siti (Open Food Facts) passano sempre da internet.
    ============================================================ */
-var VERSIONE = 'diario-insulina-v1.1';
+var VERSIONE = 'diabeat-v1.2';
 var FILE = [
   'index.html',
   'manifest.webmanifest',

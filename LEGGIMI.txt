@@ -1,5 +1,5 @@
-DIARIO INSULINA - versione 1.1
-================================
+DIABEAT - versione 1.2 (ex Diario Insulina)
+===========================================
 
 COS'È
 Diario dei pasti, delle glicemie e dell'insulina, con calcolo della dose

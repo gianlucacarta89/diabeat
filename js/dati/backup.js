@@ -15,7 +15,7 @@ App.Backup = {
       dati: App.Stato.dati
     };
     var ora = new Date();
-    var nome = 'backup_diario-insulina_' + App.Utils.dataISO(ora) + '_' + App.Utils.oraAdesso().replace(':', '') + '.json';
+    var nome = 'backup_diabeat_' + App.Utils.dataISO(ora) + '_' + App.Utils.oraAdesso().replace(':', '') + '.json';
     App.Utils.scarica(nome, JSON.stringify(pacchetto, null, 1), 'application/json');
     App.Avvisi.toast('Backup scaricato: ' + nome, 'ok', 5000);
   },

@@ -100,7 +100,7 @@ App.StampaReport = {
         }
       });
     }
-    B.salva(doc, 'diario-insulina_' + da + '_' + a + '.pdf');
+    B.salva(doc, 'diabeat_' + da + '_' + a + '.pdf');
     App.Avvisi.toast('PDF scaricato', 'ok');
   }
 };

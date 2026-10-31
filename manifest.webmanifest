@@ -1,6 +1,6 @@
 {
-  "name": "Diario Insulina",
-  "short_name": "Insulina",
+  "name": "DiabEat",
+  "short_name": "DiabEat",
   "description": "Diario dei pasti, delle glicemie e dell'insulina, con calcolo della dose.",
   "lang": "it",
   "start_url": "./index.html",

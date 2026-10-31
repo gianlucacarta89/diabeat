@@ -1,4 +1,4 @@
-# MAPPA — Diario Insulina v1.1
+# MAPPA — DiabEat v1.2
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 

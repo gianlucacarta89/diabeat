@@ -1,4 +1,10 @@
-# NOVITÀ — Diario Insulina
+# NOVITÀ — DiabEat (ex Diario Insulina)
+
+## v1.2 — 31/10/2026
+- Nuovo nome **DiabEat** e nuovo logo: cerchio blu con forchetta blu al centro (icona, testata, schermata Home).
+- PDF e backup si chiamano ora `diabeat_…`. I dati salvati non cambiano.
+
+File: js/config.js, manifest.webmanifest, index.html, icone/icona-192.png, icone/icona-512.png, js/ui/navigazione.js, css/base.css, js/stampa/stampa-report.js, js/dati/backup.js, sw.js, LEGGIMI.txt, MAPPA.md.
 
 ## v1.1 — 31/10/2026
 - Dose suggerita calcolata solo con il **rapporto insulina/carboidrati**, uno per tutta la giornata. Tolti fattore di sensibilità, obiettivo e correzione automatica. Se avevi lo stesso rapporto in tutti i pasti, viene recuperato.

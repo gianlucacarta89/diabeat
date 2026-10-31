@@ -1,5 +1,5 @@
 /* ============================================================
-   config.js — Impostazioni e REGOLE dell'app Diario Insulina.
+   config.js — Impostazioni e REGOLE dell'app DiabEat (ex Diario Insulina).
    È l'unico file che cambia tra app "sorelle".
    Dipende da: nulla (è il primo file dopo le librerie).
    Usato da: tutti i moduli.
@@ -7,9 +7,10 @@
 window.App = window.App || {};
 
 App.Config = {
-  nome: 'Diario Insulina',
-  versione: '1.1',
+  nome: 'DiabEat',
+  versione: '1.2',
   // Nome dello spazio di salvataggio: deve essere diverso per ogni app.
+  // NON cambiarlo: è quello della prima versione, cambiarlo farebbe sparire i dati salvati.
   nomeArchivio: 'diario-insulina-gc',
 
   // I sei pasti della giornata, nell'ordine in cui compaiono.

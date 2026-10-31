@@ -57,6 +57,7 @@ a { color: var(--primario); }
   display: flex; align-items: center; gap: 10px;
 }
 .testata h1 { font-size: 1.1rem; font-weight: 700; flex: 1; }
+.testata .logo { width: 30px; height: 30px; border-radius: 50%; background: #fff; }
 .testata .btn-icona { color: #fff; }
 
 /* Contenuto */
