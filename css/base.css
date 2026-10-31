@@ -1,0 +1,94 @@
+/* ============================================================
+   css/base.css — colori, caratteri, impaginazione generale.
+   Pensato prima di tutto per il telefono.
+   ============================================================ */
+:root {
+  --sfondo: #f3f6f8;
+  --carta: #ffffff;
+  --testo: #1c2730;
+  --tenue: #5f6f7c;
+  --bordo: #dde4ea;
+  --primario: #0e7490;
+  --primario-chiaro: #e0f2f7;
+
+  /* Colori per funzione: sempre gli stessi in tutta l'app */
+  --verde: #15803d;      /* salvare, confermare */
+  --rosso: #b91c1c;      /* cancellare */
+  --viola: #6d28d9;      /* PDF e stampe */
+  --blu: #1d4ed8;        /* backup, importare, esportare */
+  --arancio: #b45309;    /* avvisi */
+
+  /* Glicemia */
+  --g-bassa: #dc2626;
+  --g-ok: #16a34a;
+  --g-alta: #d97706;
+
+  --raggio: 14px;
+  --ombra: 0 1px 3px rgba(20, 40, 60, .08), 0 4px 14px rgba(20, 40, 60, .05);
+  --barra: 64px;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--testo);
+  background: var(--sfondo);
+  padding-bottom: calc(var(--barra) + env(safe-area-inset-bottom, 0px));
+  overflow-x: hidden;
+}
+body.bloccato { overflow: hidden; }
+
+h1, h2, h3 { margin: 0; line-height: 1.2; }
+h2 { font-size: 1.15rem; }
+h3 { font-size: 1rem; }
+p { margin: .4em 0; }
+small, .tenue { color: var(--tenue); }
+a { color: var(--primario); }
+
+/* Testata */
+.testata {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--primario); color: #fff;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.testata h1 { font-size: 1.1rem; font-weight: 700; flex: 1; }
+.testata .btn-icona { color: #fff; }
+
+/* Contenuto */
+#contenuto { padding: 12px 12px 8px; max-width: 760px; margin: 0 auto; }
+.sezione { margin: 18px 0 8px; display: flex; align-items: center; gap: 8px; }
+.sezione h2 { flex: 1; }
+
+/* Barra di navigazione in basso */
+.barra-nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  height: calc(var(--barra) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--carta); border-top: 1px solid var(--bordo);
+  display: flex;
+}
+.barra-nav button {
+  flex: 1; border: 0; background: none; color: var(--tenue);
+  font: inherit; font-size: .72rem; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px; cursor: pointer;
+}
+.barra-nav button .ico { font-size: 1.35rem; line-height: 1; }
+.barra-nav button.attivo { color: var(--primario); font-weight: 700; }
+
+/* Piè di pagina */
+.piede { text-align: center; color: var(--tenue); font-size: .78rem; padding: 18px 0 8px; }
+
+/* Utilità */
+.riga { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.riga > .cresce { flex: 1; min-width: 0; }
+.griglia-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.griglia-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.centro { text-align: center; }
+.nascosto { display: none !important; }
+.num { font-variant-numeric: tabular-nums; }
+.forte { font-weight: 700; }

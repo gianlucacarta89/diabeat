@@ -1,0 +1,26 @@
+/* ============================================================
+   css/schermi-grandi.css — adattamenti per tablet e computer.
+   L'app nasce per il telefono: qui si allarga solo quando c'è spazio.
+   ============================================================ */
+@media (min-width: 700px) {
+  #contenuto { padding: 18px 20px; }
+  .finestra-sfondo { align-items: center; }
+  .finestra { border-radius: 18px; max-height: 88vh; }
+  .griglia-pasti { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .griglia-pasti .card { margin-bottom: 0; }
+  #toast-box { bottom: calc(var(--barra) + 20px); }
+}
+
+@media (min-width: 1000px) {
+  /* Su computer la barra di navigazione va in alto, sotto la testata */
+  body { padding-bottom: 0; }
+  .barra-nav { position: sticky; top: 52px; bottom: auto; height: 52px; border-top: 0; border-bottom: 1px solid var(--bordo); justify-content: center; }
+  .barra-nav button { flex: 0 0 150px; flex-direction: row; font-size: .95rem; gap: 6px; }
+  #toast-box { bottom: 20px; }
+}
+
+/* Telefoni molto stretti */
+@media (max-width: 360px) {
+  .griglia-3 { grid-template-columns: 1fr 1fr; }
+  .btn { padding: 10px 12px; }
+}
