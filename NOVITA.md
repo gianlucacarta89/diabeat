@@ -1,10 +1,15 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.2.1 — 31/10/2026
+- File dell'icona rinominati (`logo-192.png`, `logo-512.png`) perché Android riconosca il nuovo logo e aggiorni l'icona dell'app installata.
+
+File: icone/logo-192.png, icone/logo-512.png, manifest.webmanifest, index.html, js/ui/navigazione.js, js/config.js, sw.js.
+
 ## v1.2 — 31/10/2026
 - Nuovo nome **DiabEat** e nuovo logo: cerchio blu con forchetta blu al centro (icona, testata, schermata Home).
 - PDF e backup si chiamano ora `diabeat_…`. I dati salvati non cambiano.
 
-File: js/config.js, manifest.webmanifest, index.html, icone/icona-192.png, icone/icona-512.png, js/ui/navigazione.js, css/base.css, js/stampa/stampa-report.js, js/dati/backup.js, sw.js, LEGGIMI.txt, MAPPA.md.
+File: js/config.js, manifest.webmanifest, index.html, icone/logo-192.png, icone/logo-512.png, js/ui/navigazione.js, css/base.css, js/stampa/stampa-report.js, js/dati/backup.js, sw.js, LEGGIMI.txt, MAPPA.md.
 
 ## v1.1 — 31/10/2026
 - Dose suggerita calcolata solo con il **rapporto insulina/carboidrati**, uno per tutta la giornata. Tolti fattore di sensibilità, obiettivo e correzione automatica. Se avevi lo stesso rapporto in tutti i pasti, viene recuperato.

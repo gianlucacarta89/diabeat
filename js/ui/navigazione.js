@@ -20,7 +20,7 @@ App.Nav = {
   prepara: function () {
     var app = document.getElementById('app');
     app.innerHTML =
-      '<header class="testata"><img class="logo" src="icone/icona-192.png" alt=""><h1>' + App.Utils.esc(App.Config.nome) + '</h1></header>' +
+      '<header class="testata"><img class="logo" src="icone/logo-192.png" alt=""><h1>' + App.Utils.esc(App.Config.nome) + '</h1></header>' +
       '<nav class="barra-nav" aria-label="Schede"></nav>' +
       '<main id="contenuto"></main>';
     var nav = app.querySelector('.barra-nav');

@@ -6,7 +6,7 @@
    (stanno in IndexedDB, non qui).
    Le richieste verso altri siti (Open Food Facts) passano sempre da internet.
    ============================================================ */
-var VERSIONE = 'diabeat-v1.2';
+var VERSIONE = 'diabeat-v1.2.1';
 var FILE = [
   'index.html',
   'manifest.webmanifest',
@@ -14,8 +14,8 @@ var FILE = [
   'css/base.css',
   'css/componenti.css',
   'css/schermi-grandi.css',
-  'icone/icona-192.png',
-  'icone/icona-512.png',
+  'icone/logo-192.png',
+  'icone/logo-512.png',
   'js/avvio.js',
   'js/config.js',
   'lib/html5-qrcode-2.3.8.min.js',
