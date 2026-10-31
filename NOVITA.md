@@ -1,5 +1,10 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.2.2 — 31/10/2026
+- Nuova identità dell'app installata (`id` e `start_url` nel manifest), perché Android permetta di installare DiabEat anche se ricorda ancora la vecchia "Diario Insulina". Stesso indirizzo, stessi dati.
+
+File: manifest.webmanifest, js/config.js, sw.js.
+
 ## v1.2.1 — 31/10/2026
 - File dell'icona rinominati (`logo-192.png`, `logo-512.png`) perché Android riconosca il nuovo logo e aggiorni l'icona dell'app installata.
 

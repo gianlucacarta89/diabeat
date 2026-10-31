@@ -3,14 +3,25 @@
   "short_name": "DiabEat",
   "description": "Diario dei pasti, delle glicemie e dell'insulina, con calcolo della dose.",
   "lang": "it",
-  "start_url": "./index.html",
+  "id": "./?app=diabeat",
+  "start_url": "./?app=diabeat",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f3f6f8",
   "theme_color": "#0e7490",
   "icons": [
-    { "src": "icone/logo-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icone/logo-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icone/logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icone/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
