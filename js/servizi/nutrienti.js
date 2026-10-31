@@ -16,19 +16,20 @@ App.Nutrienti = {
   },
 
   // Crea la voce di un pasto: copia i valori, così il diario non cambia se poi correggi l'archivio.
-  voce: function (alimento, grammi) {
+  // quantita (facoltativa): testo della porzione scelta, es. "2 uova".
+  voce: function (alimento, grammi, quantita) {
     var m = this.per(alimento, grammi);
     return {
       alimentoId: alimento.id, nome: alimento.nome, categoria: alimento.categoria,
       per100: { carb: alimento.carb, prot: alimento.prot, grassi: alimento.grassi },
-      grammi: grammi, carb: m.carb, prot: m.prot, grassi: m.grassi
+      grammi: grammi, quantita: quantita || '', carb: m.carb, prot: m.prot, grassi: m.grassi
     };
   },
 
   // Ricalcola una voce quando cambiano i grammi.
   aggiornaGrammi: function (voce, grammi) {
     var m = this.per(voce.per100, grammi);
-    voce.grammi = grammi; voce.carb = m.carb; voce.prot = m.prot; voce.grassi = m.grassi;
+    voce.grammi = grammi; voce.quantita = ''; voce.carb = m.carb; voce.prot = m.prot; voce.grassi = m.grassi;
     return voce;
   },
 

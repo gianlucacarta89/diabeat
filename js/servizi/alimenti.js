@@ -18,10 +18,13 @@ App.Alimenti = {
     if (this._cacheCatalogo) return this._cacheCatalogo;
     var out = [];
     var C = App.Catalogo || {};
+    var porzioni = C.porzioni || {};
     App.Config.categorie.forEach(function (cat) {
       (C[cat.id] || []).forEach(function (r) {
+        var p = porzioni[r[0]];
         out.push({ id: 'cat:' + App.Utils.normalizza(r[0]).replace(/ /g, '-'), nome: r[0], categoria: cat.id,
-          carb: r[1], prot: r[2], grassi: r[3], fonte: 'Catalogo' });
+          carb: r[1], prot: r[2], grassi: r[3], fonte: 'Catalogo',
+          porzione: p ? { nome: p[0], plurale: p[1], grammi: p[2] } : null });
       });
     });
     this._cacheCatalogo = out;
@@ -67,14 +70,21 @@ App.Alimenti = {
     return lista.map(function (a) {
       var n = ' ' + U.normalizza(a.nome) + ' ';
       var punti = 0;
+      // Forme singolari/plurali: uova → uovo, mele → mela, biscotti → biscotto.
+      var varianti = function (w) {
+        if (w.length < 4) return [w];
+        var r = w.slice(0, -1);
+        return [w, r + 'o', r + 'a', r + 'e', r + 'i'];
+      };
       for (var i = 0; i < parole.length; i++) {
-        var w = parole[i];
-        if (n.indexOf(' ' + w + ' ') >= 0) punti += 3;
-        else if (n.indexOf(' ' + w) >= 0) punti += 2;
-        else if (w.length > 2 && n.indexOf(w.slice(0, -1)) >= 0) punti += 1; // pasta/paste, mela/mele
+        var v = varianti(parole[i]), w = parole[i];
+        if (v.some(function (x) { return n.indexOf(' ' + x + ' ') >= 0; })) punti += 3;
+        else if (v.some(function (x) { return n.indexOf(' ' + x) >= 0; })) punti += 2;
+        else if (w.length > 2 && n.indexOf(w.slice(0, -1)) >= 0) punti += 1;
         else return null;
       }
-      if (n.indexOf(' ' + q) === 0) punti += 2;
+      // Bonus se il nome del cibo comincia con la prima parola cercata.
+      if (varianti(parole[0]).some(function (x) { return n.indexOf(' ' + x) === 0; })) punti += 2;
       return { a: a, punti: punti };
     }).filter(Boolean).sort(function (x, y) {
       return y.punti - x.punti || self.ordineCategoria(x.a.categoria) - self.ordineCategoria(y.a.categoria) ||
@@ -100,6 +110,12 @@ App.Alimenti = {
   valida: function (a) {
     if (!a.nome || !String(a.nome).trim()) return 'Scrivi il nome del cibo.';
     if (!App.Config.categorie.some(function (c) { return c.id === a.categoria; })) return 'Scegli la categoria.';
+    var p = a.porzione;
+    if (p && (p.nome || p.grammi != null)) {
+      if (!p.nome) return 'Unità: scrivi il nome (es. uovo, tazza, fetta) o lascia vuoti tutti e due i campi.';
+      var e = App.Sicurezza.controlla('grammi', p.grammi, 'Grammi per unità', true);
+      if (e) return e;
+    }
     return App.Sicurezza.macro(a.carb, a.prot, a.grassi);
   },
 
@@ -112,7 +128,11 @@ App.Alimenti = {
       id: dati.id || ('pers:' + App.Utils.id()),
       nome: String(dati.nome).trim(), categoria: dati.categoria,
       carb: dati.carb, prot: dati.prot, grassi: dati.grassi,
-      fonte: dati.fonte || 'Personale', codice: dati.codice || ''
+      fonte: dati.fonte || 'Personale', codice: dati.codice || '',
+      porzione: (dati.porzione && dati.porzione.nome) ? {
+        nome: String(dati.porzione.nome).trim().toLowerCase(),
+        plurale: String(dati.porzione.plurale || '').trim().toLowerCase(),
+        grammi: dati.porzione.grammi } : null
     };
     if (a.id.indexOf('cat:') === 0 && a.fonte === 'Catalogo') a.fonte = 'Catalogo, modificato';
     var i = lista.map(function (x) { return x.id; }).indexOf(a.id);
@@ -140,6 +160,15 @@ App.Alimenti = {
   ripristina: function (id) {
     App.Stato.dati.alimenti = App.Stato.dati.alimenti.filter(function (a) { return a.id !== id; });
     App.Stato.salva('alimenti');
+  },
+
+  // "1 uovo", "2 uova", "1½ tazze", "0,5 tazza". quante: numero di unità.
+  testoPorzione: function (porzione, quante) {
+    if (!porzione) return '';
+    var intero = Math.floor(quante), mezzo = Math.abs(quante - intero - 0.5) < 0.01;
+    var num = mezzo ? (intero ? intero + '½' : '½') : App.Utils.dec(quante, 2);
+    var plur = quante > 1 ? (porzione.plurale || porzione.nome) : porzione.nome;
+    return num + ' ' + plur;
   },
 
   nomeCategoria: function (id) {

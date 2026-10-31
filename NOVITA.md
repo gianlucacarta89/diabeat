@@ -1,5 +1,12 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.3 — 31/10/2026
+- **Porzioni casalinghe:** molti cibi hanno un'unità (1 uovo = 55 g, 1 tazza di latte = 200 g, 1 biscotto secco = 6 g…). Scegliendo il cibo compaiono i pulsanti "1 uovo, 2 uova…" o "½ tazza, 1 tazza, 1½ tazze…", e nel pasto si vede "2 uova · 110 g". Pesi indicativi, modificabili per ogni cibo (anche quelli nuovi).
+- **Voce:** capisce "2 uova", "una tazza e mezza di latte", "mezza tazza di corn flakes", "3 biscotti", "una fetta di pane" e calcola i grammi.
+- **Ricerca:** riconosce singolare e plurale (uova → uovo, mele → mela) e, a voce, preferisce i cibi usati di recente.
+
+File: js/catalogo/porzioni.js (nuovo), js/servizi/alimenti.js, js/servizi/nutrienti.js, js/servizi/voce-testo.js, js/ui/ui-pasto-cibi.js, js/ui/ui-pasto.js, js/ui/ui-voce.js, js/ui/ui-alimento-form.js, js/config.js, index.html, sw.js, MAPPA.md, LEGGIMI.txt.
+
 ## v1.2.2 — 31/10/2026
 - Nuova identità dell'app installata (`id` e `start_url` nel manifest), perché Android permetta di installare DiabEat anche se ricorda ancora la vecchia "Diario Insulina". Stesso indirizzo, stessi dati.
 

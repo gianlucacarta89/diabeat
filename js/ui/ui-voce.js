@@ -35,7 +35,7 @@ App.UIVoce = {
       (conVoce ? '<button class="mic" aria-label="Parla">🎤</button><p class="centro tenue" id="v-stato">Tocca il microfono e di\' cosa mangi.</p>'
                : '<div class="riquadro riquadro-info">Scrivi cosa mangi, oppure usa il microfono della tastiera.</div>') +
       '<label for="v-testo">Frase</label>' +
-      '<textarea id="v-testo" placeholder="es. 80 grammi di pasta, 150 di petto di pollo e una mela"></textarea>' +
+      '<textarea id="v-testo" placeholder="es. 2 uova, una tazza e mezza di latte, 3 biscotti secchi"></textarea>' +
       '<button class="btn btn-contorno btn-pieno" data-az="analizza" style="margin-top:8px">Trova i cibi</button>' +
       '<div id="v-proposte"></div>' +
     '</div>');
@@ -55,8 +55,19 @@ App.UIVoce = {
           (p.candidati.length
             ? '<select class="cresce" style="flex:1;min-width:0" data-i="' + i + '">' + opz + '</select>'
             : '<div class="nome" style="color:var(--arancio)">Non trovato in archivio: aggiungilo da 🔍 Cerca</div>') +
-          '<input class="voce-grammi" inputmode="decimal" data-g="' + i + '" placeholder="g" value="' + (p.grammi != null ? p.grammi : '') + '">' +
+          '<input class="voce-grammi" inputmode="decimal" data-g="' + i + '" placeholder="g" value="' + (p.grammi != null ? p.grammi : '') + '"><span class="tenue">g</span>' +
+          '<div style="width:100%"><small class="tenue" data-q="' + i + '">' + U.esc(p.quantita || '') + '</small></div>' +
           '</li>');
+        // Cambiando cibo, se avevi detto dei pezzi ("2 uova") i grammi si ricalcolano con la sua unità.
+        var sel = li.querySelector('select');
+        if (sel) sel.onchange = function () {
+          var a = p.candidati[+sel.value];
+          var dp = App.VoceTesto.daPezzi(a, p.pezzi);
+          if (dp) { li.querySelector('input').value = dp.grammi; p.quantita = dp.quantita; }
+          else if (p.pezzi != null) { li.querySelector('input').value = ''; p.quantita = ''; }
+          li.querySelector('[data-q]').textContent = p.quantita || '';
+        };
+        li.querySelector('input').oninput = function () { p.quantita = ''; li.querySelector('[data-q]').textContent = ''; };
         card.querySelector('ul').appendChild(li);
       });
       box.appendChild(card);
@@ -79,7 +90,7 @@ App.UIVoce = {
             var g = U.numero(corpo.querySelector('input[data-g="' + i + '"]').value);
             var e = App.Sicurezza.grammi(g);
             if (e) { App.UIComune.errore(f.corpo, 'input[data-g="' + i + '"]', a.nome + ' – ' + e); return false; }
-            voci.push(App.Nutrienti.voce(a, g));
+            voci.push(App.Nutrienti.voce(a, g, proposte[i].quantita));
           }
           if (!voci.length) { App.Avvisi.toast('Nessun cibo da aggiungere.', 'avviso'); return false; }
           callback(voci);

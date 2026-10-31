@@ -38,50 +38,82 @@ App.VoceTesto = {
     return (!resto && tot > 0) ? tot : null;
   },
 
-  // Divide la frase nei singoli cibi.
+  // Unità casalinghe riconosciute a voce (si tolgono dal nome del cibo).
+  UNITA_CASA: /^(tazz[ae]|tazzin[ae]|bicchier[ei]|fett[ae]|cucchia(io|i)|cucchiain[oi]|vasett[oi]|pacchett[oi]|lattin[ae]|bottigli[ae]|pallin[ae]|quadrett[oi]|porzion[ei]|fogli[oi]?|pezz[oi])$/,
+
+  // Divide la frase nei singoli cibi. "una tazza e mezza" resta unita.
   dividi: function (frase) {
     return String(frase || '').toLowerCase()
+      .replace(/\s+e\s+mezz[oa](?=\s+di\b|\s*[,;.]|\s*$)/g, ' emezzo')
       .replace(/[;.]/g, ',')
       .split(/,|\s+e\s+|\s+poi\s+|\s+più\s+|\s+piu\s+/)
       .map(function (s) { return s.trim(); }).filter(Boolean);
   },
 
-  // Analizza un pezzo: "80 grammi di pasta" → { grammi: 80, nome: 'pasta' }
+  /* Analizza un pezzo:
+     "80 grammi di pasta"         → { grammi: 80, nome: 'pasta' }
+     "2 uova"                     → { pezzi: 2, nome: 'uova' }
+     "una tazza emezzo di latte"  → { pezzi: 1.5, nome: 'latte' } */
   pezzo: function (testo) {
     var self = this;
     var t = testo.replace(/(\d)\s*(g|gr|kg|ml)\b/g, '$1 $2').replace(/d'/g, 'di ').replace(/[']/g, ' ');
     var tok = t.split(/\s+/).filter(Boolean);
-    var grammi = null, usati = {};
+    var grammi = null, pezzi = null, usati = {};
     for (var i = 0; i < tok.length; i++) {
-      var w = tok[i];
-      if (w === 'mezzo' && /^ett/.test(tok[i + 1] || '')) { grammi = 50; usati[i] = usati[i + 1] = 1; break; }
+      var w = tok[i], u = tok[i + 1] || '';
+      if ((w === 'mezzo' || w === 'mezza') && /^ett/.test(u)) { grammi = 50; usati[i] = usati[i + 1] = 1; break; }
+      if ((w === 'mezzo' || w === 'mezza') && self.UNITA_CASA.test(u)) { pezzi = 0.5; usati[i] = usati[i + 1] = 1; break; }
       var n = self.parolaNumero(w);
       if (n == null) continue;
-      var u = tok[i + 1] || '';
       if (/^(g|gr|grammi|grammo)$/.test(u)) { grammi = n; usati[i] = usati[i + 1] = 1; break; }
       if (/^ett[oi]$/.test(u)) { grammi = n * 100; usati[i] = usati[i + 1] = 1; break; }
       if (/^(kg|chilo|chili)$/.test(u)) { grammi = n * 1000; usati[i] = usati[i + 1] = 1; break; }
       if (/^(ml|millilitri)$/.test(u)) { grammi = n; usati[i] = usati[i + 1] = 1; break; }
-      // Numero senza unità: da 10 in su sono grammi, sotto sono pezzi (grammi da scrivere).
+      if (self.UNITA_CASA.test(u)) { pezzi = n; usati[i] = usati[i + 1] = 1; break; }
+      // Numero senza unità: da 10 in su sono grammi, sotto sono pezzi (uova, biscotti…).
       if (n >= 10) { grammi = n; usati[i] = 1; break; }
-      usati[i] = 1; break;
+      pezzi = n; usati[i] = 1; break;
     }
-    var nome = tok.filter(function (w, i) { return !usati[i] && self.RIEMPITIVI.indexOf(w) < 0; }).join(' ').trim();
-    return { grammi: grammi, nome: nome };
+    var k = tok.indexOf('emezzo');
+    if (k >= 0) { usati[k] = 1; if (pezzi != null) pezzi += 0.5; else if (grammi == null) pezzi = 0.5; }
+    var nome = tok.filter(function (w, i) { return !usati[i] && self.RIEMPITIVI.indexOf(w) < 0 && !self.UNITA_CASA.test(w); }).join(' ').trim();
+    return { grammi: grammi, pezzi: pezzi, nome: nome };
   },
 
-  // Restituisce [{ testo, grammi, nome, candidati: [alimenti] }]
+  /* Riordina i candidati senza perdere l'ordine della ricerca:
+     prima i cibi usati di recente; se hai detto dei pezzi ("2 uova"), prima quelli con un'unità. */
+  ordina: function (lista, conPezzi) {
+    var recenti = {};
+    App.Alimenti.recenti(30, 50).forEach(function (a, i) { recenti[a.id] = 50 - i; });
+    return lista.map(function (a, i) {
+      var punti = (conPezzi && a.porzione ? 1000 : 0) + (recenti[a.id] || 0) * 10 - i;
+      return { a: a, punti: punti };
+    }).sort(function (x, y) { return y.punti - x.punti; }).map(function (x) { return x.a; });
+  },
+
+  // Grammi da un numero di pezzi, se il cibo ha un'unità. { grammi, quantita } oppure null.
+  daPezzi: function (alimento, pezzi) {
+    if (!alimento || !alimento.porzione || pezzi == null) return null;
+    return { grammi: Math.round(pezzi * alimento.porzione.grammi * 10) / 10,
+      quantita: App.Alimenti.testoPorzione(alimento.porzione, pezzi) };
+  },
+
+  // Restituisce [{ testo, grammi, pezzi, quantita, nome, candidati: [alimenti] }]
   analizza: function (frase) {
     var self = this;
     return this.dividi(frase).map(function (s) {
       var p = self.pezzo(s);
-      var candidati = p.nome ? App.Alimenti.cerca(p.nome).slice(0, 6) : [];
+      var candidati = p.nome ? App.Alimenti.cerca(p.nome) : [];
       // Se non trova con tutte le parole, prova con la parola più lunga.
       if (!candidati.length && p.nome) {
         var lunga = p.nome.split(' ').sort(function (a, b) { return b.length - a.length; })[0];
-        candidati = App.Alimenti.cerca(lunga).slice(0, 6);
+        candidati = App.Alimenti.cerca(lunga);
       }
-      return { testo: s, grammi: p.grammi, nome: p.nome, candidati: candidati };
+      candidati = self.ordina(candidati, p.pezzi != null).slice(0, 6);
+      var r = { testo: s.replace(' emezzo', ' e mezzo'), grammi: p.grammi, pezzi: p.pezzi, quantita: '', nome: p.nome, candidati: candidati };
+      var dp = r.grammi == null ? self.daPezzi(candidati[0], p.pezzi) : null;
+      if (dp) { r.grammi = dp.grammi; r.quantita = dp.quantita; }
+      return r;
     }).filter(function (x) { return x.nome || x.grammi; });
   }
 };

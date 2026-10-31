@@ -69,7 +69,7 @@ App.UIPasto = {
       ul.innerHTML = '';
       if (!b.voci.length) ul.appendChild(U.el('<li class="tenue">Nessun cibo. Usa i pulsanti sopra per aggiungerli.</li>'));
       b.voci.forEach(function (v, i) {
-        var li = U.el('<li><div class="nome">' + U.esc(v.nome) + '<small>' + U.dec(v.carb) + ' g carboidrati</small></div>' +
+        var li = U.el('<li><div class="nome">' + U.esc(v.nome) + '<small>' + (v.quantita ? U.esc(v.quantita) + ' · ' : '') + U.dec(v.carb) + ' g carboidrati</small></div>' +
           '<input class="voce-grammi" inputmode="decimal" value="' + U.dec(v.grammi, 1) + '" aria-label="Grammi"><span class="tenue">g</span>' +
           '<button class="btn-icona rosso" aria-label="Togli">✕</button></li>');
         var inp = li.querySelector('input');

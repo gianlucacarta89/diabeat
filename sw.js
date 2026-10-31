@@ -6,7 +6,7 @@
    (stanno in IndexedDB, non qui).
    Le richieste verso altri siti (Open Food Facts) passano sempre da internet.
    ============================================================ */
-var VERSIONE = 'diabeat-v1.2.2';
+var VERSIONE = 'diabeat-v1.3';
 var FILE = [
   'index.html',
   'manifest.webmanifest',
@@ -26,6 +26,7 @@ var FILE = [
   'js/catalogo/alimenti-contorni.js',
   'js/catalogo/alimenti-primi.js',
   'js/catalogo/alimenti-secondi.js',
+  'js/catalogo/porzioni.js',
   'js/core/archivio.js',
   'js/core/avvisi.js',
   'js/core/stato.js',

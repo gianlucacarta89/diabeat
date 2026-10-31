@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.2
+# MAPPA — DiabEat v1.3
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -30,7 +30,7 @@ Nome, versione, nome archivio, **pasti**, **categorie** (ordine = priorità di r
 | `avvisi.js` | `toast`, `finestra` (sovrapponibili), `conferma` → Promise |
 
 ## js/catalogo/ (catalogo iniziale, righe `[nome, carb, prot, grassi]` per 100 g)
-`alimenti-primi.js`, `alimenti-secondi.js`, `alimenti-contorni.js`, `alimenti-antipasti-dolci.js`, `alimenti-altro.js` (pane, colazione, frutta, bevande, condimenti).
+`alimenti-primi.js`, `alimenti-secondi.js`, `alimenti-contorni.js`, `alimenti-antipasti-dolci.js`, `alimenti-altro.js` (pane, colazione, frutta, bevande, condimenti), **`porzioni.js`** (unità casalinghe: nome del cibo → [unità, plurale, grammi]).
 
 ## js/servizi/ (logica, senza interfaccia)
 | File | Funzioni principali | Usato da |
@@ -38,13 +38,13 @@ Nome, versione, nome archivio, **pasti**, **categorie** (ordine = priorità di r
 | `sicurezza.js` | `controlla` (limiti di config), `glicemia`, `grammi`, `dose`, `macro`, `ora`, `sottoSoglia`, `oltreMassimo`, `mancantiGenerali` (soglia ipo, dose max) | tutto |
 | `parametri.js` | `rapportoIC`, `mancanti`, `salva` (con **storico**), `storico` | Impostazioni → Rapporto insulina/carboidrati |
 | `nutrienti.js` | `per`, `voce` (copia i valori nel pasto), `aggiornaGrammi`, `totali` | pasto, modelli |
-| `alimenti.js` | `catalogo`, `tutti`, `cerca` (punteggio + priorità categoria), `recenti`, `salva`, `elimina` (catalogo = nascosto), `ripristina`, `perCodice` | Archivio, ricerca cibi, voce, scanner |
+| `alimenti.js` | `catalogo`, `tutti`, `cerca` (punteggio, singolare/plurale, priorità categoria), `testoPorzione`, `recenti`, `salva`, `elimina` (catalogo = nascosto), `ripristina`, `perCodice` | Archivio, ricerca cibi, voce, scanner |
 | `modelli.js` | `tutti`, `salva`, `elimina`, `vociDa`, `carboidrati` | Archivio → Modelli, pulsante 📋 Modello |
 | `insulina-attiva.js` | `boli`, `calcola` (modello lineare sulla durata impostata) | informazione nel calcolo, riquadro "insulina attiva adesso" |
 | `pasto-grasso.js` | `livello` (nessuno/medio/alto), `valuta` (dose aggiuntiva indicativa, orari di controllo), `oraPiu` | **riquadro 🧈 pasto grasso**, chip nel diario, statistiche, PDF |
 | `calcolo-bolo.js` | **`calcola`: tutte le regole della dose** (ipo → parametri → carboidrati ÷ I/C → arrotondamento → avvisi e informazioni → pasto grasso) | riquadro del calcolo |
 | `diario.js` | `salvaPasto`, `eliminaPasto`, **bozze** (`leggiBozza`, `salvaBozza`, `togliBozza`), `salvaUmore` (uno al giorno), `aggiungiAttivita` (con intensità), `aggiungiIpo`, `aggiungiBoloExtra`, `rimuovi`, `salvaNote`, `cancellaDiario` | Diario |
-| `voce-testo.js` | `analizza(frase)` → cibi + grammi + candidati; `parolaNumero`, `pezzo`, `dividi` | pulsante 🎤 Voce |
+| `voce-testo.js` | `analizza(frase)` → cibi + grammi + candidati; `parolaNumero`, `pezzo` (grammi o pezzi), `dividi`, `ordina` (recenti, unità), `daPezzi` | pulsante 🎤 Voce |
 | `open-food-facts.js` | `cerca(codice)` | pulsante 📷 Codice |
 | `statistiche.js` | `calcola(da, a)` | Statistiche, PDF |
 
@@ -68,10 +68,10 @@ Nome, versione, nome archivio, **pasti**, **categorie** (ordine = priorità di r
 | `ui-giorno-extra.js` | nel Diario: **Attività (con intensità), Boli extra, Ipoglicemie, Note** e le loro finestre; `finestraBolo` usata anche per la dose aggiuntiva del pasto grasso |
 | `ui-pasto.js` | finestra del **pasto** (ora, glicemia, cibi, dose, note, salva/elimina/scarta bozza) |
 | `ui-calcolo.js` | riquadro **Dose** nel pasto (passaggi, dose suggerita, avvisi, informazioni, **riquadro 🧈 pasto grasso** con pulsante "Registra la dose aggiuntiva", "Come si calcola") |
-| `ui-pasto-cibi.js` | pulsanti **🔍 Cerca** (ricerca + recenti), finestra **grammi**, **📋 Modello** |
+| `ui-pasto-cibi.js` | pulsanti **🔍 Cerca** (ricerca + recenti), finestra **grammi** con i pulsanti delle **porzioni**, **📋 Modello** |
 | `ui-voce.js` | pulsante **🎤 Voce** (consenso, microfono, frase scritta, conferma cibi) |
 | `ui-scanner.js` | pulsanti **📷 Codice** / **📷 Codice a barre** |
-| `ui-alimento-form.js` | finestra **Nuovo cibo / Modifica cibo / Controlla il prodotto** |
+| `ui-alimento-form.js` | finestra **Nuovo cibo / Modifica cibo / Controlla il prodotto** (con unità casalinga facoltativa) |
 | `ui-archivio.js` | scheda **Archivio** → Cibi (ricerca, categorie, modifica, elimina, ripristina) |
 | `ui-modelli.js` | scheda **Archivio** → Modelli di pasto |
 | `ui-statistiche.js` | scheda **Statistiche** |

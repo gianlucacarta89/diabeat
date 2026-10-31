@@ -30,6 +30,12 @@ App.UIAlimentoForm = {
         '<div>' + UC.campo('f-grassi', 'Grassi', dati.grassi, 'g') + '</div>' +
       '</div>' +
       '<div class="aiuto">Dall\'etichetta usa i "carboidrati" (non solo gli zuccheri).</div>' +
+      '<p class="aiuto" style="margin-top:12px"><b>Unità casalinga</b> (facoltativa): per scegliere "2 uova" o "1 tazza" invece dei grammi.</p>' +
+      '<div class="griglia-3">' +
+        '<div><label for="f-pnome">Unità</label><input id="f-pnome" placeholder="es. tazza" value="' + U.esc(dati.porzione ? dati.porzione.nome : '') + '"></div>' +
+        '<div><label for="f-pplur">Plurale</label><input id="f-pplur" placeholder="es. tazze" value="' + U.esc(dati.porzione ? dati.porzione.plurale || '' : '') + '"></div>' +
+        '<div>' + UC.campo('f-pgr', 'Peso di 1', dati.porzione ? dati.porzione.grammi : null, 'g') + '</div>' +
+      '</div>' +
       (dati.codice ? '<p class="tenue" style="margin-top:10px">Codice a barre: <b>' + U.esc(dati.codice) + '</b></p>' : '') +
       (dati.fonte ? '<p class="tenue">Fonte: ' + U.esc(dati.fonte) + '</p>' : '') +
     '</div>');
@@ -42,7 +48,8 @@ App.UIAlimentoForm = {
           var r = App.Alimenti.salva({
             id: dati.id, codice: dati.codice, fonte: dati.fonte,
             nome: UC.testo(corpo, '#f-nome'), categoria: corpo.querySelector('#f-cat').value,
-            carb: UC.num(corpo, '#f-carb'), prot: UC.num(corpo, '#f-prot'), grassi: UC.num(corpo, '#f-grassi')
+            carb: UC.num(corpo, '#f-carb'), prot: UC.num(corpo, '#f-prot'), grassi: UC.num(corpo, '#f-grassi'),
+            porzione: { nome: UC.testo(corpo, '#f-pnome'), plurale: UC.testo(corpo, '#f-pplur'), grammi: UC.num(corpo, '#f-pgr') }
           });
           if (r.errore) { UC.errore(f.corpo, null, r.errore); return false; }
           App.Avvisi.toast('Cibo salvato in archivio', 'ok');
