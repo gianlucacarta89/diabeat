@@ -6,7 +6,7 @@
    (stanno in IndexedDB, non qui).
    Le richieste verso altri siti (Open Food Facts) passano sempre da internet.
    ============================================================ */
-var VERSIONE = 'diario-insulina-v1.0';
+var VERSIONE = 'diario-insulina-v1.1';
 var FILE = [
   'index.html',
   'manifest.webmanifest',
@@ -39,6 +39,7 @@ var FILE = [
   'js/servizi/nutrienti.js',
   'js/servizi/open-food-facts.js',
   'js/servizi/parametri.js',
+  'js/servizi/pasto-grasso.js',
   'js/servizi/sicurezza.js',
   'js/servizi/statistiche.js',
   'js/servizi/voce-testo.js',

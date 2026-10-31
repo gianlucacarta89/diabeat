@@ -1,9 +1,9 @@
 /* ============================================================
    ui/ui-giorno.js
-   Scheda "Diario": un giorno con i sei pasti, le attività, la
-   basale, i boli extra, le ipoglicemie e le note.
+   Scheda "Diario": un giorno con lo stato d'animo, i sei pasti,
+   le attività, i boli extra, le ipoglicemie e le note.
    Dipende da: App.Stato, App.Diario, App.InsulinaAttiva, App.Nutrienti,
-               App.Sicurezza, App.Parametri, App.UIComune, App.UIPasto,
+               App.Sicurezza, App.Parametri, App.PastoGrasso, App.UIComune, App.UIPasto,
                App.UIGiornoExtra, App.Nav, App.Utils.
    Usato da: ui/navigazione.js.
    ============================================================ */
@@ -45,11 +45,10 @@ App.UIGiorno = {
     }
 
     // --- Avviso parametri mancanti ---
-    var mancanti = App.Sicurezza.mancantiGenerali();
-    var pastiSenza = App.Config.pasti.filter(function (p) { return App.Parametri.mancanti(p.id).length; });
-    if (mancanti.length || pastiSenza.length) {
+    var mancanti = App.Parametri.mancanti().concat(App.Sicurezza.mancantiGenerali());
+    if (mancanti.length) {
       var avv = U.el('<div class="riquadro riquadro-avviso">⚙️ <b>Dose suggerita non ancora attiva.</b> ' +
-        'Mancano: ' + U.esc(mancanti.concat(pastiSenza.length ? ['parametri di ' + pastiSenza.length + ' pasti'] : []).join(', ')) +
+        'Mancano: ' + U.esc(mancanti.join(', ')) +
         '.<div style="margin-top:8px"><button class="btn btn-piccolo">Vai alle impostazioni</button></div></div>');
       avv.querySelector('button').onclick = function () { App.Nav.vai('impostazioni'); };
       c.appendChild(avv);
@@ -64,6 +63,20 @@ App.UIGiorno = {
       }
     }
 
+    // --- Stato d'animo del giorno (uno solo) ---
+    c.appendChild(U.el('<div class="sezione"><h2>Stato d\'animo di oggi</h2></div>'));
+    var umori = U.el('<div class="filtri"></div>');
+    App.Config.umoriPredefiniti.forEach(function (u) {
+      var chip = U.el('<span class="chip chip-scelta">' + u.icona + ' ' + U.esc(u.nome) + '</span>');
+      chip.classList.toggle('scelto', g.umoreId === u.id);
+      chip.onclick = function () {
+        App.Diario.salvaUmore(iso, g.umoreId === u.id ? '' : u.id);
+        App.Nav.disegna();
+      };
+      umori.appendChild(chip);
+    });
+    c.appendChild(umori);
+
     // --- Pasti ---
     c.appendChild(U.el('<div class="sezione"><h2>Pasti</h2></div>'));
     var griglia = U.el('<div class="griglia-pasti"></div>');
@@ -73,6 +86,7 @@ App.UIGiorno = {
       var card;
       if (dati) {
         var tot = App.Nutrienti.totali(dati.voci);
+        var grasso = App.PastoGrasso.valuta(tot, null, dati.ora);
         var nomi = (dati.voci || []).map(function (v) { return v.nome; }).join(', ');
         card = U.el('<div class="card card-cliccabile">' +
           '<div class="pasto-testa"><span class="pasto-icona">' + p.icona + '</span>' +
@@ -82,6 +96,7 @@ App.UIGiorno = {
           '<div class="pasto-dati">' + UC.chipGlicemia(dati.glicemia) +
           (tot.carb ? '<span class="chip">🍞 ' + U.dec(tot.carb, 0) + ' g CHO</span>' : '') +
           (dati.dose != null ? UC.chipDose(dati.dose) : '<span class="chip">💉 dose non inserita</span>') +
+          (grasso.livello === 'alto' ? '<span class="chip chip-g-alta">🧈 pasto grasso: controlla ' + grasso.controlloDa + '–' + grasso.controlloA + '</span>' : '') +
           (bozza ? '<span class="chip chip-g-alta">✏️ modifiche non salvate</span>' : '') +
           '</div></div>');
       } else {
@@ -96,7 +111,7 @@ App.UIGiorno = {
     });
     c.appendChild(griglia);
 
-    // --- Attività, basale, boli extra, ipoglicemie, note ---
+    // --- Attività, boli extra, ipoglicemie, note ---
     App.UIGiornoExtra.disegnaSezioni(c, iso, g);
   },
 

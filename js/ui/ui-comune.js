@@ -68,6 +68,6 @@ App.UIComune = {
     return App.Stato.imp().attivita.filter(function (a) { return a.id === id; })[0] || null;
   },
   umore: function (id) {
-    return App.Stato.imp().umori.filter(function (u) { return u.id === id; })[0] || null;
+    return App.Config.umoriPredefiniti.filter(function (u) { return u.id === id; })[0] || null;
   }
 };

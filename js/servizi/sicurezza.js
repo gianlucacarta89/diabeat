@@ -26,7 +26,6 @@ App.Sicurezza = {
   glicemia: function (v, obbl) { return this.controlla('glicemia', v, 'Glicemia', obbl); },
   grammi: function (v) { return this.controlla('grammi', v, 'Grammi', true); },
   dose: function (v, obbl) { return this.controlla('dose', v, 'Dose', obbl); },
-  correzione: function (v) { return this.controlla('correzione', v, 'Correzione', false); },
 
   // Valori nutrizionali per 100 g.
   macro: function (carb, prot, grassi) {
@@ -59,11 +58,10 @@ App.Sicurezza = {
     return dose > m;
   },
 
-  // Cosa manca per poter suggerire una dose (parametri generali).
+  // Cosa manca per poter suggerire una dose (oltre al rapporto I/C, in servizi/parametri.js).
   mancantiGenerali: function () {
     var imp = App.Stato.imp();
     var m = [];
-    if (imp.insulinaRapida.durataOre == null) m.push('durata d\'azione della ' + imp.insulinaRapida.nome);
     if (imp.sogliaIpo == null) m.push('soglia di ipoglicemia');
     if (imp.doseMax == null) m.push('dose massima per bolo');
     return m;

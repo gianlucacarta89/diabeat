@@ -1,10 +1,10 @@
 /* ============================================================
    ui/ui-giorno-extra.js
-   Nel diario: sezioni Attività, Basale, Boli extra, Ipoglicemie
-   e Note, con le finestre per inserirle.
+   Nel diario: sezioni Attività (con intensità), Boli extra,
+   Ipoglicemie e Note, con le finestre per inserirle.
    Dipende da: App.Stato, App.Diario, App.UIComune, App.Avvisi,
                App.Nav, App.Utils.
-   Usato da: ui/ui-giorno.js, ui/ui-pasto.js (aggiunta attività).
+   Usato da: ui/ui-giorno.js, ui/ui-calcolo.js (bolo aggiuntivo del pasto grasso).
    ============================================================ */
 window.App = window.App || {};
 
@@ -35,29 +35,12 @@ App.UIGiornoExtra = {
     var ulA = sezione('🏃 Attività', '＋ Attività', function () { self.finestraAttivita(iso); });
     (g.attivita || []).forEach(function (a) {
       var def = UC.attivita(a.attivitaId) || { nome: a.attivitaId, icona: '🏃' };
+      var dettagli = [a.intensita ? 'intensità ' + a.intensita : '', a.durataMin ? a.durataMin + ' min' : ''].filter(Boolean).join(' · ');
       riga(ulA, '<b>' + U.esc(a.ora) + '</b> ' + def.icona + ' ' + U.esc(def.nome) +
-        (a.durataMin ? ' <small>' + a.durataMin + ' min' + (def.intensita ? ' · intensità ' + def.intensita : '') + '</small>' : '') +
+        (dettagli ? '<small>' + U.esc(dettagli) + '</small>' : '') +
         (a.note ? '<small>' + U.esc(a.note) + '</small>' : ''), 'attivita', a.id, 'questa attività');
     });
-    if (!(g.attivita || []).length) vuoto(ulA, 'Nessuna attività. Inseriscile prima dei pasti per poterle considerare nel calcolo.');
-
-    // Basale
-    var sB = U.el('<div class="sezione"><h2>🌙 Basale (' + U.esc(imp.insulinaBasale.nome) + ')</h2></div>');
-    c.appendChild(sB);
-    var cardB = U.el('<div class="card"></div>');
-    if (g.basale) {
-      cardB.innerHTML = '<div class="riga"><div class="cresce"><b>' + U.esc(g.basale.ora) + '</b> ' + UC.chipDose(g.basale.dose) + '</div>' +
-        '<button class="btn btn-piccolo btn-neutro" data-az="mod">Modifica</button><button class="btn-icona rosso" data-az="del">🗑️</button></div>';
-      cardB.querySelector('[data-az=mod]').onclick = function () { self.finestraBasale(iso, g.basale); };
-      cardB.querySelector('[data-az=del]').onclick = function () {
-        App.Avvisi.conferma({ titolo: 'Elimina basale', testo: 'Vuoi eliminare la basale di questo giorno?', ok: 'Elimina', pericolo: true })
-          .then(function (si) { if (si) { App.Diario.togliBasale(iso); App.Nav.disegna(); } });
-      };
-    } else {
-      cardB.innerHTML = '<button class="btn btn-contorno btn-pieno">＋ Registra la basale</button>';
-      cardB.querySelector('button').onclick = function () { self.finestraBasale(iso, null); };
-    }
-    c.appendChild(cardB);
+    if (!(g.attivita || []).length) vuoto(ulA, 'Nessuna attività registrata.');
 
     // Boli extra
     var ulE = sezione('💉 Boli extra', '＋ Bolo', function () { self.finestraBolo(iso); });
@@ -65,7 +48,7 @@ App.UIGiornoExtra = {
       riga(ulE, '<b>' + U.esc(b.ora) + '</b> ' + UC.chipDose(b.dose) + ' ' + UC.chipGlicemia(b.glicemia) +
         (b.note ? '<small>' + U.esc(b.note) + '</small>' : ''), 'boliExtra', b.id, 'questo bolo');
     });
-    if (!(g.boliExtra || []).length) vuoto(ulE, 'Correzioni fuori dai pasti: contano nell\'insulina attiva.');
+    if (!(g.boliExtra || []).length) vuoto(ulE, 'Correzioni o dosi aggiuntive fuori dal momento del pasto.');
 
     // Ipoglicemie
     var ulI = sezione('🍬 Ipoglicemie', '＋ Ipo', function () { self.finestraIpo(iso); });
@@ -85,7 +68,7 @@ App.UIGiornoExtra = {
 
   // Finestra generica con un modulo; salva(f) restituisce il risultato del servizio.
   _modulo: function (titolo, icona, html, salva) {
-    App.Avvisi.finestra({
+    var fin = App.Avvisi.finestra({
       titolo: titolo, icona: icona, classe: 'piccola', contenuto: html,
       pulsanti: [
         { testo: 'Annulla', classe: 'btn-neutro' },
@@ -107,6 +90,13 @@ App.UIGiornoExtra = {
         } }
       ]
     });
+    // Chip a scelta singola (es. intensità).
+    fin.corpo.querySelectorAll('.chip-scelta').forEach(function (ch) {
+      ch.onclick = function () {
+        ch.parentNode.querySelectorAll('.chip-scelta').forEach(function (x) { x.classList.toggle('scelto', x === ch); });
+      };
+    });
+    return fin;
   },
 
   finestraAttivita: function (iso, dopo) {
@@ -115,13 +105,17 @@ App.UIGiornoExtra = {
       return '<option value="' + a.id + '">' + a.icona + ' ' + U.esc(a.nome) + '</option>';
     }).join('');
     var html = '<label>Attività</label><select id="a-tipo">' + opzioni + '</select>' +
+      '<label>Intensità</label><div class="riga" id="a-int">' + App.Config.intensita.map(function (x) {
+        return '<span class="chip chip-scelta" data-int="' + x + '">' + x + '</span>';
+      }).join('') + '</div>' +
       UC.campoOra('a-ora', 'Ora di inizio', U.oraAdesso()) +
       UC.campo('a-durata', 'Durata (facoltativa)', null, 'min') +
-      '<label for="a-note">Note</label><input id="a-note" placeholder="es. partita di campionato">' +
-      '<div class="riquadro riquadro-info">Nel pasto potrai spuntare questa attività: si applica la % che hai impostato per lei.</div>';
+      '<label for="a-note">Note</label><input id="a-note" placeholder="es. partita di campionato">';
     this._modulo('Nuova attività', '🏃', html, function (f) {
+      var scelta = f.querySelector('#a-int .scelto');
       var r = App.Diario.aggiungiAttivita(iso, {
         attivitaId: f.querySelector('#a-tipo').value, ora: f.querySelector('#a-ora').value,
+        intensita: scelta ? scelta.getAttribute('data-int') : '',
         durataMin: UC.num(f, '#a-durata'), note: UC.testo(f, '#a-note')
       });
       if (!r.errore && dopo) setTimeout(dopo, 0);
@@ -129,24 +123,16 @@ App.UIGiornoExtra = {
     });
   },
 
-  finestraBasale: function (iso, attuale) {
-    var UC = App.UIComune, imp = App.Stato.imp();
-    var ultima = attuale || App.Diario.ultimaBasale(App.Utils.aggiungiGiorni(iso, -1));
-    var html = UC.campoOra('b-ora', 'Ora', attuale ? attuale.ora : '') +
-      UC.campo('b-dose', 'Dose di ' + App.Utils.esc(imp.insulinaBasale.nome), attuale ? attuale.dose : null, 'U', { classe: 'grande',
-        aiuto: ultima && !attuale ? 'Ultima registrata: ' + App.Utils.dec(ultima.dose) + ' U alle ' + ultima.ora : '' });
-    this._modulo('Basale', '🌙', html, function (f) {
-      return App.Diario.salvaBasale(iso, { ora: f.querySelector('#b-ora').value, dose: UC.num(f, '#b-dose') });
-    });
-  },
-
-  finestraBolo: function (iso) {
-    var UC = App.UIComune;
-    var html = UC.campoOra('e-ora', 'Ora', App.Utils.oraAdesso()) +
+  /* opz (facoltativo): { nota, aiutoDose } — usato per la dose aggiuntiva del pasto grasso.
+     La dose resta vuota: la scrivi tu dopo aver visto la glicemia. */
+  finestraBolo: function (iso, opz) {
+    var UC = App.UIComune, U = App.Utils;
+    opz = opz || {};
+    var html = UC.campoOra('e-ora', 'Ora', U.oraAdesso()) +
       UC.campo('e-glic', 'Glicemia (facoltativa)', null, 'mg/dL') +
-      UC.campo('e-dose', 'Dose fatta', null, 'U', { classe: 'grande' }) +
-      '<label for="e-note">Note</label><input id="e-note" placeholder="es. correzione dopo partita">';
-    this._modulo('Bolo extra', '💉', html, function (f) {
+      UC.campo('e-dose', 'Dose fatta', null, 'U', { classe: 'grande', aiuto: opz.aiutoDose || '' }) +
+      '<label for="e-note">Note</label><input id="e-note" placeholder="es. correzione dopo partita" value="' + U.esc(opz.nota || '') + '">';
+    this._modulo(opz.titolo || 'Bolo extra', '💉', html, function (f) {
       var dati = { ora: f.querySelector('#e-ora').value, glicemia: UC.num(f, '#e-glic'),
         dose: UC.num(f, '#e-dose'), note: UC.testo(f, '#e-note') };
       if (!App.Sicurezza.oltreMassimo(dati.dose)) return App.Diario.aggiungiBoloExtra(iso, dati);

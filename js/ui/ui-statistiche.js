@@ -1,7 +1,7 @@
 /* ============================================================
    ui/ui-statistiche.js
    Scheda "Statistiche": riepilogo di un periodo (7, 14, 30, 90
-   giorni), glicemie per pasto, per stato d'animo e per attività,
+   giorni), glicemie per pasto, per stato d'animo e nei giorni con attività,
    e PDF per il diabetologo.
    Dipende da: App.Statistiche, App.StampaReport, App.Stato, App.UIComune,
                App.Config, App.Nav, App.Utils.
@@ -36,8 +36,8 @@ App.UIStatistiche = {
         '<div class="stat"><b>' + v(s.media, 0) + '</b><small>glicemia media</small></div>' +
         '<div class="stat"><b>' + v(s.pctNel, 0, '%') + '</b><small>nel range ' + s.range.basso + '–' + s.range.alto + '</small></div>' +
         '<div class="stat"><b>' + s.ipo + '</b><small>ipoglicemie</small></div>' +
-        '<div class="stat"><b>' + v(s.boloMedio, 1) + '</b><small>U boli al giorno</small></div>' +
-        '<div class="stat"><b>' + v(s.basaleMedia, 1) + '</b><small>U basale (media)</small></div>' +
+        '<div class="stat"><b>' + v(s.boloMedio, 1) + '</b><small>U rapida al giorno</small></div>' +
+        '<div class="stat"><b>' + s.pastiGrassi + '</b><small>pasti ricchi di grassi</small></div>' +
         '<div class="stat"><b>' + v(s.carbMedi, 0) + '</b><small>g CHO al giorno</small></div>' +
       '</div>'));
       if (s.misure) {
@@ -62,12 +62,12 @@ App.UIStatistiche = {
       tabella('Glicemia prima dei pasti', App.Config.pasti.filter(function (p) { return s.perPasto[p.id]; }).map(function (p) {
         return [p.icona + ' ' + p.nome, s.perPasto[p.id].media, s.perPasto[p.id].n];
       }));
-      tabella('Glicemia per stato d\'animo', App.Stato.imp().umori.filter(function (u) { return s.perUmore[u.id]; }).map(function (u) {
+      tabella('Glicemia per stato d\'animo del giorno', App.Config.umoriPredefiniti.filter(function (u) { return s.perUmore[u.id]; }).map(function (u) {
         return [u.icona + ' ' + U.esc(u.nome), s.perUmore[u.id].media, s.perUmore[u.id].n];
-      }), 'Con poche misure le differenze non sono affidabili: aspetta qualche settimana prima di trarre conclusioni.');
-      tabella('Glicemia nei pasti con attività', App.Stato.imp().attivita.filter(function (x) { return s.perAttivita[x.id]; }).map(function (x) {
+      }), 'Media di tutte le glicemie dei giorni con quello stato d\'animo. Con poche misure le differenze non sono affidabili.');
+      tabella('Glicemia nei giorni con attività', App.Stato.imp().attivita.filter(function (x) { return s.perAttivita[x.id]; }).map(function (x) {
         return [x.icona + ' ' + U.esc(x.nome), s.perAttivita[x.id].media, s.perAttivita[x.id].n];
-      }), 'È la glicemia misurata al pasto in cui hai spuntato l\'attività.');
+      }), 'Media di tutte le glicemie dei giorni in cui hai registrato l\'attività.');
     }
 
     var pdf = U.el('<div class="card"><b>📄 Report per il diabetologo</b><p class="tenue">PDF con il riepilogo del periodo scelto, i parametri e il diario giorno per giorno.</p>' +

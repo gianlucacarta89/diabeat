@@ -39,10 +39,5 @@ App.Nutrienti = {
     });
     ['carb', 'prot', 'grassi'].forEach(function (k) { t[k] = Math.round(t[k] * 10) / 10; });
     return t;
-  },
-
-  // Pasto molto grasso o proteico: la glicemia può salire ore dopo.
-  pastoGrasso: function (tot) {
-    return tot.grassi >= App.Config.promemoriaGrassi;
   }
 };

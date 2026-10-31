@@ -1,9 +1,10 @@
 /* ============================================================
    servizi/statistiche.js
    Riepiloghi di un periodo: glicemie, tempo nel range,
-   ipoglicemie, insulina, carboidrati, glicemie per pasto e per
-   stato d'animo. Nessuna interfaccia.
-   Dipende da: App.Stato, App.Config, App.Nutrienti, App.Utils.
+   ipoglicemie, insulina rapida, carboidrati, glicemie per pasto,
+   per stato d'animo del giorno e nei giorni con attività,
+   pasti ricchi di grassi. Nessuna interfaccia.
+   Dipende da: App.Stato, App.Config, App.Nutrienti, App.PastoGrasso, App.Utils.
    Usato da: ui/ui-statistiche.js, stampa/stampa-report.js.
    ============================================================ */
 window.App = window.App || {};
@@ -27,7 +28,7 @@ App.Statistiche = {
   calcola: function (da, a) {
     var U = App.Utils, S = App.Stato, self = this;
     var range = S.imp().range;
-    var tutte = [], giorniConDati = 0, boli = [], basali = [], carb = [], ipo = 0;
+    var tutte = [], giorniConDati = 0, boli = [], carb = [], ipo = 0, pastiGrassi = 0;
     var perPasto = {}, perUmore = {}, perAttivita = {};
     App.Config.pasti.forEach(function (p) { perPasto[p.id] = []; });
 
@@ -35,22 +36,27 @@ App.Statistiche = {
       var g = S.giorno(d);
       if (!g) continue;
       giorniConDati++;
-      tutte = tutte.concat(self.glicemieGiorno(g));
+      var glicG = self.glicemieGiorno(g);
+      tutte = tutte.concat(glicG);
       ipo += (g.ipo || []).length;
       var boloG = 0, carbG = 0;
       Object.keys(g.pasti || {}).forEach(function (pid) {
-        var p = g.pasti[pid];
+        var p = g.pasti[pid], tot = App.Nutrienti.totali(p.voci);
         if (p.dose) boloG += p.dose;
-        carbG += App.Nutrienti.totali(p.voci).carb;
-        if (p.glicemia != null) {
-          if (perPasto[pid]) perPasto[pid].push(p.glicemia);
-          if (p.umoreId) (perUmore[p.umoreId] = perUmore[p.umoreId] || []).push(p.glicemia);
-          (p.attivitaIds || []).forEach(function (aid) { (perAttivita[aid] = perAttivita[aid] || []).push(p.glicemia); });
-        }
+        carbG += tot.carb;
+        if (App.PastoGrasso.livello(tot) === 'alto') pastiGrassi++;
+        if (p.glicemia != null && perPasto[pid]) perPasto[pid].push(p.glicemia);
       });
       (g.boliExtra || []).forEach(function (b) { boloG += b.dose || 0; });
       boli.push(boloG); carb.push(carbG);
-      if (g.basale) basali.push(g.basale.dose);
+      // Stato d'animo e attività valgono per tutte le glicemie del giorno.
+      if (g.umoreId) perUmore[g.umoreId] = (perUmore[g.umoreId] || []).concat(glicG);
+      var visti = {};
+      (g.attivita || []).forEach(function (x) {
+        if (visti[x.attivitaId]) return;
+        visti[x.attivitaId] = 1;
+        perAttivita[x.attivitaId] = (perAttivita[x.attivitaId] || []).concat(glicG);
+      });
     }
 
     var nel = tutte.filter(function (x) { return x >= range.basso && x <= range.alto; }).length;
@@ -69,8 +75,8 @@ App.Statistiche = {
       pctNel: tutte.length ? nel / tutte.length * 100 : null,
       pctSotto: tutte.length ? sotto / tutte.length * 100 : null,
       pctSopra: tutte.length ? sopra / tutte.length * 100 : null,
-      ipo: ipo,
-      boloMedio: this.media(boli), basaleMedia: this.media(basali), carbMedi: this.media(carb),
+      ipo: ipo, pastiGrassi: pastiGrassi,
+      boloMedio: this.media(boli), carbMedi: this.media(carb),
       perPasto: sintesi(perPasto), perUmore: sintesi(perUmore), perAttivita: sintesi(perAttivita),
       range: range
     };

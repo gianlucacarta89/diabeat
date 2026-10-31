@@ -1,5 +1,15 @@
 # NOVITÀ — Diario Insulina
 
+## v1.1 — 31/10/2026
+- Dose suggerita calcolata solo con il **rapporto insulina/carboidrati**, uno per tutta la giornata. Tolti fattore di sensibilità, obiettivo e correzione automatica. Se avevi lo stesso rapporto in tutti i pasti, viene recuperato.
+- **Pasti ricchi di grassi o proteine:** riquadro con la strategia suggerita (dose normale prima del pasto, controllo dopo 2-3 ore, dose aggiuntiva indicativa del 20% se la glicemia sale, osservazione fino a 6 ore), pulsante per registrare la dose aggiuntiva, avviso nel diario, conteggio nelle statistiche e nel PDF.
+- **Stato d'animo:** uno solo al giorno, scelto in cima al diario.
+- **Attività:** si registrano con intensità bassa, media o alta; nessuna percentuale.
+- **Basale:** tolta dal diario, dalle statistiche e dal PDF.
+- Durata d'azione della rapida ora facoltativa (solo per l'informazione sull'insulina ancora attiva).
+
+File: js/config.js, js/core/stato.js, js/servizi/parametri.js, js/servizi/sicurezza.js, js/servizi/calcolo-bolo.js, js/servizi/pasto-grasso.js (nuovo), js/servizi/diario.js, js/servizi/statistiche.js, js/servizi/nutrienti.js, js/ui/ui-comune.js, js/ui/ui-giorno.js, js/ui/ui-giorno-extra.js, js/ui/ui-pasto.js, js/ui/ui-calcolo.js, js/ui/ui-parametri.js, js/ui/ui-attivita-umori.js, js/ui/ui-impostazioni.js, js/ui/ui-statistiche.js, js/stampa/stampa-report.js, index.html, sw.js, LEGGIMI.txt, MAPPA.md.
+
 ## v1.0 — 31/10/2026
 Prima versione.
 - Diario giornaliero con sei pasti, attività, basale, boli extra, ipoglicemie e note.

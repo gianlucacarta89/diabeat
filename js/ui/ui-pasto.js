@@ -1,12 +1,12 @@
 /* ============================================================
    ui/ui-pasto.js
-   Finestra di un pasto: ora, glicemia, cibi, attività, stato
-   d'animo, calcolo della dose, dose fatta, note.
+   Finestra di un pasto: ora, glicemia, cibi, calcolo della dose
+   (con il riquadro del pasto grasso), dose fatta, note.
    Ciò che scrivi resta come bozza finché non salvi: se chiudi la
    finestra o la pagina si ridisegna, non si perde.
    Dipende da: App.Stato, App.Diario, App.CalcoloBolo, App.Nutrienti,
                App.Sicurezza, App.UIComune, App.UICalcolo, App.UIPastoCibi,
-               App.UIVoce, App.UIScanner, App.UIGiornoExtra, App.Avvisi,
+               App.UIVoce, App.UIScanner, App.Avvisi,
                App.Nav, App.Utils.
    Usato da: ui/ui-giorno.js.
    ============================================================ */
@@ -20,7 +20,7 @@ App.UIPasto = {
     var cfgPasto = App.Config.pasti.filter(function (p) { return p.id === pastoId; })[0];
     var b = bozza ? U.clona(bozza) : salvato ? U.clona(salvato) : {
       ora: iso === U.oggi() ? U.oraAdesso() : cfgPasto.ora,
-      glicemia: null, voci: [], attivitaIds: [], umoreId: '', dose: null, note: ''
+      glicemia: null, voci: [], dose: null, note: ''
     };
     var modificato = !!bozza;
     var risultato = null;
@@ -40,8 +40,6 @@ App.UIPasto = {
       '</div>' +
       '<div class="card" style="margin-top:8px"><ul class="elenco" id="p-voci"></ul></div>' +
       '<div class="macro" id="p-macro"></div>' +
-      '<div class="sezione"><h2>Attività del giorno</h2></div><div id="p-attivita"></div>' +
-      '<div class="sezione"><h2>Stato d\'animo</h2></div><div class="riga" id="p-umore"></div>' +
       '<div class="sezione"><h2>Dose</h2></div><div id="p-calcolo"></div>' +
       UC.campo('p-dose', 'Dose fatta (' + U.esc(App.Stato.imp().insulinaRapida.nome) + ')', b.dose, 'U', { classe: 'grande',
         aiuto: 'Scrivi la dose che fai davvero: è quella che conta per l\'insulina attiva.' }) +
@@ -61,9 +59,8 @@ App.UIPasto = {
     };
 
     var disegnaCalcolo = function () {
-      risultato = App.CalcoloBolo.calcola({ data: iso, pastoId: pastoId, ora: b.ora, glicemia: b.glicemia,
-        voci: b.voci, attivitaIds: b.attivitaIds, umoreId: b.umoreId });
-      App.UICalcolo.disegna(corpo.querySelector('#p-calcolo'), risultato);
+      risultato = App.CalcoloBolo.calcola({ data: iso, pastoId: pastoId, ora: b.ora, glicemia: b.glicemia, voci: b.voci });
+      App.UICalcolo.disegna(corpo.querySelector('#p-calcolo'), risultato, iso);
       corpo.querySelector('[data-az=usa]').disabled = risultato.stato !== 'ok' || risultato.suggerita == null;
     };
 
@@ -96,44 +93,6 @@ App.UIPasto = {
     var aggiungiVoci = function (nuove) {
       if (!nuove || !nuove.length) return;
       b.voci = b.voci.concat(nuove); tocca(); disegnaVoci();
-    };
-
-    var disegnaAttivita = function () {
-      var box = corpo.querySelector('#p-attivita');
-      var g = App.Stato.giorno(iso);
-      var elenco = (g && g.attivita) || [];
-      box.innerHTML = '';
-      var riga = U.el('<div class="riga"></div>');
-      elenco.forEach(function (a) {
-        var def = UC.attivita(a.attivitaId) || { nome: a.attivitaId, icona: '🏃' };
-        var pct = def.correzionePct ? ' ' + (def.correzionePct > 0 ? '+' : '') + def.correzionePct + '%' : '';
-        var chip = U.el('<span class="chip chip-scelta">' + def.icona + ' ' + U.esc(a.ora) + ' ' + U.esc(def.nome) + '<b>' + pct + '</b></span>');
-        var attiva = b.attivitaIds.indexOf(a.attivitaId) >= 0;
-        chip.classList.toggle('scelto', attiva);
-        chip.onclick = function () {
-          var i = b.attivitaIds.indexOf(a.attivitaId);
-          if (i >= 0) b.attivitaIds.splice(i, 1); else b.attivitaIds.push(a.attivitaId);
-          tocca(); disegnaAttivita(); disegnaCalcolo();
-        };
-        riga.appendChild(chip);
-      });
-      var nuova = U.el('<span class="chip chip-scelta">＋ Nuova attività</span>');
-      nuova.onclick = function () { App.UIGiornoExtra.finestraAttivita(iso, disegnaAttivita); };
-      riga.appendChild(nuova);
-      box.appendChild(riga);
-      if (elenco.length) box.appendChild(U.el('<div class="aiuto">Spunta le attività che influiscono su questo pasto.</div>'));
-    };
-
-    var disegnaUmore = function () {
-      var box = corpo.querySelector('#p-umore');
-      box.innerHTML = '';
-      App.Stato.imp().umori.forEach(function (u) {
-        var pct = u.correzionePct ? ' ' + (u.correzionePct > 0 ? '+' : '') + u.correzionePct + '%' : '';
-        var chip = U.el('<span class="chip chip-scelta">' + u.icona + ' ' + U.esc(u.nome) + '<b>' + pct + '</b></span>');
-        chip.classList.toggle('scelto', b.umoreId === u.id);
-        chip.onclick = function () { b.umoreId = b.umoreId === u.id ? '' : u.id; tocca(); disegnaUmore(); disegnaCalcolo(); };
-        box.appendChild(chip);
-      });
     };
 
     // Eventi dei campi
@@ -170,15 +129,14 @@ App.UIPasto = {
         App.Nav.disegna();
       }
     });
-    disegnaVoci(); disegnaAttivita(); disegnaUmore();
+    disegnaVoci();
   },
 
   // Controlli prima di salvare, con conferma se la dose supera il massimo.
   salva: function (iso, pastoId, b, risultato, f, fatto) {
     var procedi = function () {
       var r = App.Diario.salvaPasto(iso, pastoId, {
-        ora: b.ora, glicemia: b.glicemia, voci: b.voci, attivitaIds: b.attivitaIds, umoreId: b.umoreId,
-        dose: b.dose, suggerita: risultato && risultato.stato === 'ok' ? risultato.suggerita : null, note: (b.note || '').trim()
+        ora: b.ora, glicemia: b.glicemia, voci: b.voci, dose: b.dose, suggerita: risultato && risultato.stato === 'ok' ? risultato.suggerita : null, note: (b.note || '').trim()
       });
       if (r.errore) { App.UIComune.errore(f.corpo, null, r.errore); return; }
       fatto();

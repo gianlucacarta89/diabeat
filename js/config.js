@@ -8,7 +8,7 @@ window.App = window.App || {};
 
 App.Config = {
   nome: 'Diario Insulina',
-  versione: '1.0',
+  versione: '1.1',
   // Nome dello spazio di salvataggio: deve essere diverso per ogni app.
   nomeArchivio: 'diario-insulina-gc',
 
@@ -33,8 +33,8 @@ App.Config = {
     { id: 'altro',     nome: 'Altro', icona: '🥖', descrizione: 'pane, frutta, colazione, bevande, condimenti' }
   ],
 
-  // Attività della giornata. La % di correzione la imposta l'utente:
-  // finché è vuota, l'attività si registra ma non cambia la dose.
+  // Attività della giornata: si registrano con ora, durata e intensità.
+  // Non cambiano la dose: servono al diario e alle statistiche.
   attivitaPredefinite: [
     { id: 'pesi',     nome: 'Allenamento pesi',           icona: '🏋️' },
     { id: 'calcio',   nome: 'Allenamento calcio',         icona: '⚽' },
@@ -45,7 +45,7 @@ App.Config = {
   ],
   intensita: ['bassa', 'media', 'alta'],
 
-  // Stati d'animo. Correzione di partenza: nessuna.
+  // Stati d'animo: uno al giorno. Non cambiano la dose.
   umoriPredefiniti: [
     { id: 'sereno',     nome: 'Sereno',          icona: '😌' },
     { id: 'normale',    nome: 'Normale',         icona: '🙂' },
@@ -62,18 +62,25 @@ App.Config = {
     grammi:      { min: 1,  max: 2000, unita: 'g' },
     dose:        { min: 0,  max: 100,  unita: 'U' },
     rapportoIC:  { min: 1,  max: 150,  unita: 'g per 1 U' },
-    sensibilita: { min: 5,  max: 400,  unita: 'mg/dL per 1 U' },
-    obiettivo:   { min: 70, max: 200,  unita: 'mg/dL' },
     durataOre:   { min: 2,  max: 8,    unita: 'ore' },
     sogliaIpo:   { min: 50, max: 100,  unita: 'mg/dL' },
     doseMax:     { min: 1,  max: 60,   unita: 'U' },
-    correzione:  { min: -80, max: 80,  unita: '%' },
     macro:       { min: 0,  max: 100,  unita: 'g per 100 g' }
   },
 
-  // Grammi di grassi nel pasto oltre i quali compare il promemoria
-  // "la glicemia può salire ore dopo". Non cambia la dose.
-  promemoriaGrassi: 40,
+  // PASTO GRASSO O PROTEICO (vedi ricerca "Grassi e glicemia nel diabete di tipo 1").
+  // Il riquadro compare quando il pasto supera le soglie. La dose suggerita
+  // NON cambia: la dose aggiuntiva è mostrata a parte, da valutare più tardi.
+  pastoGrasso: {
+    grassiMedio: 20,        // g di grassi: effetto lieve, solo controllo
+    grassiAlto: 40,         // g di grassi: rialzo tardivo atteso (Bell 2020, Wolpert 2013)
+    proteineAlte: 50,       // g di proteine: con almeno grassiMedio conta come pasto alto
+    pctAggiuntiva: 20,      // % del bolo dei carboidrati, punto di partenza ISPAD 2022
+    controlloDa: 2,         // ore dopo il pasto: primo controllo della glicemia
+    controlloA: 3,          // ore dopo il pasto: fine della finestra per la dose aggiuntiva
+    durataEffetto: 6,       // ore in cui tenere d'occhio la glicemia
+    doseMinima: 1           // U: sotto questo bolo la % non ha senso (pasto con pochi carboidrati)
+  },
 
   // Passi possibili della penna.
   passiPenna: [0.5, 1],
@@ -95,14 +102,13 @@ App.Config = {
     premessa: 'L\'app fa i conti con i parametri che inserisci tu (meglio se concordati con il diabetologo). ' +
               'È un aiuto al calcolo: la decisione sulla dose resta tua.',
     regoleCalcolo: [
-      'Dose per i carboidrati = carboidrati del pasto ÷ rapporto insulina/carboidrati del pasto.',
-      'Correzione = (glicemia − obiettivo) ÷ fattore di sensibilità. Senza glicemia la correzione è 0.',
-      'Se sei sopra l\'obiettivo, dalla correzione si toglie l\'insulina ancora attiva (mai sotto 0). Se sei sotto, la correzione negativa riduce la dose del pasto.',
-      'Insulina ancora attiva: ogni bolo cala in modo lineare fino a zero nella durata d\'azione impostata.',
-      'Alla somma si applicano le % delle attività spuntate e dello stato d\'animo (se le hai impostate).',
-      'Il risultato si arrotonda al passo della penna. Sotto 0 diventa 0.',
+      'Dose suggerita = carboidrati del pasto ÷ rapporto insulina/carboidrati (uno solo per tutta la giornata).',
+      'Non c\'è correzione automatica per la glicemia alta: se serve, la valuti tu.',
+      'Il risultato si arrotonda al passo della penna.',
       'Glicemia sotto la soglia di ipoglicemia: nessuna dose suggerita.',
-      'Dose sopra il massimo impostato: avviso e conferma prima di salvarla.'
+      'Dose sopra il massimo impostato: avviso e conferma prima di salvarla.',
+      'Insulina ancora attiva (se imposti la durata d\'azione): solo un\'informazione, non entra nel calcolo.',
+      'Pasto ricco di grassi o proteine: la dose suggerita non cambia; compare a parte una dose aggiuntiva indicativa da valutare dopo 2-3 ore.'
     ],
     avvisoVoce: 'Il riconoscimento vocale lo fa il telefono tramite i servizi di Google o Apple: ' +
                 'la frase che detti passa da internet. Gli altri dati restano solo sul telefono. ' +

@@ -1,17 +1,18 @@
 /* ============================================================
    servizi/diario.js
-   Operazioni sul diario: pasti, attività, basale, ipoglicemie,
-   boli extra e bozze dei pasti non ancora salvati.
+   Operazioni sul diario: pasti, stato d'animo del giorno, attività,
+   ipoglicemie, boli extra e bozze dei pasti non ancora salvati.
    Ogni funzione controlla i dati PRIMA di salvare e restituisce
    { errore: '...' } se qualcosa non va.
-   Dipende da: App.Stato, App.Sicurezza, App.Utils.
+   Dipende da: App.Stato, App.Sicurezza, App.Config, App.Utils.
    Usato da: ui/ui-giorno.js, ui/ui-pasto.js, ui/ui-giorno-extra.js.
+   (La basale non si registra più dalla v1.1: i vecchi dati restano nel backup.)
    ============================================================ */
 window.App = window.App || {};
 
 App.Diario = {
   // --- Pasti --------------------------------------------------
-  /* dati: { ora, glicemia, voci, attivitaIds, umoreId, dose, suggerita, note } */
+  /* dati: { ora, glicemia, voci, dose, suggerita, note } */
   salvaPasto: function (iso, pastoId, dati) {
     var S = App.Sicurezza;
     var e = S.ora(dati.ora) || S.glicemia(dati.glicemia, false) || S.dose(dati.dose, false);
@@ -26,14 +27,13 @@ App.Diario = {
     var g = App.Stato.assicuraGiorno(iso);
     g.pasti[pastoId] = {
       ora: dati.ora, glicemia: dati.glicemia, voci: dati.voci,
-      attivitaIds: dati.attivitaIds || [], umoreId: dati.umoreId || '',
       dose: dati.dose, suggerita: dati.suggerita, note: dati.note || '',
       salvato: new Date().toISOString()
     };
     this.togliBozza(iso, pastoId);
     App.Stato.salva('giorni');
     var avvisi = [];
-    if (dati.dose == null && dati.voci.length) avvisi.push('Dose non inserita: questo pasto non conta nell\'insulina attiva.');
+    if (dati.dose == null && dati.voci.length) avvisi.push('Dose non inserita: il pasto è salvato senza dose.');
     return { ok: true, avvisi: avvisi };
   },
 
@@ -74,13 +74,14 @@ App.Diario = {
     App.Stato.salva('giorni');
   },
 
-  // { attivitaId, ora, durataMin, note }
+  // { attivitaId, ora, durataMin, intensita, note }
   aggiungiAttivita: function (iso, a) {
     var e = App.Sicurezza.ora(a.ora);
     if (!e && !a.attivitaId) e = 'Scegli l\'attività.';
+    if (!e && App.Config.intensita.indexOf(a.intensita) < 0) e = 'Scegli l\'intensità: ' + App.Config.intensita.join(', ') + '.';
     if (!e && a.durataMin != null && (a.durataMin < 5 || a.durataMin > 600)) e = 'Durata non valida: da 5 a 600 minuti.';
     if (e) return { errore: e };
-    return this._aggiungi(iso, 'attivita', { attivitaId: a.attivitaId, ora: a.ora, durataMin: a.durataMin, note: a.note || '' });
+    return this._aggiungi(iso, 'attivita', { attivitaId: a.attivitaId, ora: a.ora, durataMin: a.durataMin, intensita: a.intensita, note: a.note || '' });
   },
 
   // { ora, glicemia, trattamento }
@@ -98,30 +99,14 @@ App.Diario = {
     return this._aggiungi(iso, 'boliExtra', { ora: x.ora, dose: x.dose, glicemia: x.glicemia, note: x.note || '' });
   },
 
-  // --- Basale --------------------------------------------------
-  salvaBasale: function (iso, x) {
-    var e = App.Sicurezza.ora(x.ora) || App.Sicurezza.dose(x.dose, true);
-    if (!e && x.dose <= 0) e = 'Dose: scrivi un valore maggiore di 0.';
-    if (e) return { errore: e };
-    App.Stato.assicuraGiorno(iso).basale = { ora: x.ora, dose: x.dose };
-    App.Stato.salva('giorni');
-    return { ok: true };
-  },
-  togliBasale: function (iso) {
-    var g = App.Stato.giorno(iso);
-    if (!g) return;
-    g.basale = null;
+  // --- Stato d'animo: uno al giorno (vuoto = nessuno) ----------
+  salvaUmore: function (iso, umoreId) {
+    if (umoreId && !App.Config.umoriPredefiniti.some(function (u) { return u.id === umoreId; })) return { errore: 'Stato d\'animo non valido.' };
+    if (!umoreId && !App.Stato.giorno(iso)) return { ok: true };
+    App.Stato.assicuraGiorno(iso).umoreId = umoreId || '';
     App.Stato.pulisciGiorno(iso);
     App.Stato.salva('giorni');
-  },
-
-  // Ultima basale registrata prima del giorno indicato (per proporre la dose abituale).
-  ultimaBasale: function (iso) {
-    for (var n = 0; n < 30; n++) {
-      var g = App.Stato.giorno(App.Utils.aggiungiGiorni(iso, -n));
-      if (g && g.basale) return g.basale;
-    }
-    return null;
+    return { ok: true };
   },
 
   salvaNote: function (iso, testo) {

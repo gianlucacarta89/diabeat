@@ -1,9 +1,9 @@
 /* ============================================================
    ui/ui-impostazioni.js
-   Scheda "Impostazioni": insuline, sicurezza, parametri per pasto,
-   attività e stati d'animo, backup, cancellazione del diario.
+   Scheda "Impostazioni": insulina rapida, rapporto insulina/carboidrati,
+   sicurezza, attività, backup, cancellazione del diario.
    Dipende da: App.Stato, App.Sicurezza, App.Config, App.UIComune,
-               App.UIParametri, App.UIAttivitaUmori, App.Backup,
+               App.UIParametri, App.UIAttivitaUmori, App.Archivio, App.Backup,
                App.Diario, App.Avvisi, App.Nav, App.Utils.
    Usato da: ui/navigazione.js.
    ============================================================ */
@@ -14,17 +14,19 @@ App.UIImpostazioni = {
     var U = App.Utils, UC = App.UIComune, imp = App.Stato.imp();
     c.appendChild(U.el('<div class="riquadro riquadro-info">ℹ️ ' + U.esc(App.Config.testi.premessa) + '</div>'));
 
-    // --- Insuline ---
-    var cardIns = U.el('<div class="card"><h2>💉 Insuline</h2>' +
+    // --- Rapporto insulina/carboidrati (il parametro della dose) ---
+    App.UIParametri.disegna(c);
+
+    // --- Insulina rapida ---
+    var cardIns = U.el('<div class="card"><h2>💉 Insulina rapida</h2>' +
       '<label for="s-rap">Insulina rapida (boli)</label><input id="s-rap" value="' + U.esc(imp.insulinaRapida.nome) + '">' +
-      UC.campo('s-durata', 'Durata d\'azione della rapida', imp.insulinaRapida.durataOre, 'ore',
-        { aiuto: 'Serve per stimare l\'insulina ancora attiva. Usa il valore indicato dal tuo diabetologo.' }) +
+      UC.campo('s-durata', 'Durata d\'azione (facoltativa)', imp.insulinaRapida.durataOre, 'ore',
+        { aiuto: 'Se la imposti, nel pasto vedi quanta insulina dei boli precedenti è ancora attiva (solo informativo).' }) +
       '<label for="s-passo">Passo della penna</label><select id="s-passo">' +
         App.Config.passiPenna.map(function (p) {
           return '<option value="' + p + '"' + (imp.insulinaRapida.passo === p ? ' selected' : '') + '>' + U.dec(p) + ' U</option>';
         }).join('') + '</select>' +
-      '<label for="s-bas">Insulina basale</label><input id="s-bas" value="' + U.esc(imp.insulinaBasale.nome) + '">' +
-      '<button class="btn btn-verde btn-pieno" style="margin-top:12px">💾 Salva insuline</button></div>');
+      '<button class="btn btn-verde btn-pieno" style="margin-top:12px">💾 Salva insulina</button></div>');
     cardIns.querySelector('button').onclick = function () {
       var durata = UC.num(cardIns, '#s-durata');
       var e = App.Sicurezza.controlla('durataOre', durata, 'Durata d\'azione', false);
@@ -32,9 +34,8 @@ App.UIImpostazioni = {
       imp.insulinaRapida.nome = UC.testo(cardIns, '#s-rap') || 'Rapida';
       imp.insulinaRapida.durataOre = durata;
       imp.insulinaRapida.passo = Number(cardIns.querySelector('#s-passo').value);
-      imp.insulinaBasale.nome = UC.testo(cardIns, '#s-bas') || 'Basale';
       App.Stato.salva('impostazioni');
-      App.Avvisi.toast('Insuline salvate', 'ok');
+      App.Avvisi.toast('Insulina salvata', 'ok');
     };
     c.appendChild(cardIns);
 
@@ -63,8 +64,7 @@ App.UIImpostazioni = {
     };
     c.appendChild(cardSic);
 
-    // --- Parametri per pasto, attività e umori ---
-    App.UIParametri.disegna(c);
+    // --- Rapporto insulina/carboidrati e attività ---
     App.UIAttivitaUmori.disegna(c);
 
     // --- Dati ---
@@ -75,7 +75,7 @@ App.UIImpostazioni = {
       '<button class="btn btn-blu" data-az="imp">⬆️ Importa backup</button></div>' +
       '<input type="file" accept=".json,application/json" class="nascosto">' +
       '<button class="btn btn-rosso btn-pieno" style="margin-top:14px" data-az="canc">🗑️ Cancella il diario</button>' +
-      '<p class="aiuto">Cancella pasti, attività, basale, boli e ipoglicemie. Archivio cibi, modelli e impostazioni restano.</p></div>');
+      '<p class="aiuto">Cancella pasti, stati d\'animo, attività, boli e ipoglicemie. Archivio cibi, modelli e impostazioni restano.</p></div>');
     var file = cardDati.querySelector('input[type=file]');
     cardDati.querySelector('[data-az=esp]').onclick = function () { App.Backup.esporta(); };
     cardDati.querySelector('[data-az=imp]').onclick = function () { file.value = ''; file.click(); };

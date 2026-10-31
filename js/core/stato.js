@@ -15,25 +15,17 @@ App.Stato = {
   scheda: 'oggi',
   giornoAperto: null,
 
-  // Impostazioni di partenza: i parametri della dose sono VUOTI di proposito.
+  // Impostazioni di partenza: il rapporto insulina/carboidrati è VUOTO di proposito.
   impostazioniIniziali: function () {
     var C = App.Config;
-    var parametri = {};
-    C.pasti.forEach(function (p) { parametri[p.id] = { rapportoIC: null, sensibilita: null, obiettivo: null }; });
     return {
       insulinaRapida: { nome: 'NovoRapid', durataOre: null, passo: 0.5 },
-      insulinaBasale: { nome: 'Tresiba', oraAbituale: '' },
-      parametri: parametri,
+      rapportoIC: null,
       storicoParametri: [],
       sogliaIpo: null,
       doseMax: null,
       range: { basso: C.rangeStatistiche.basso, alto: C.rangeStatistiche.alto },
-      attivita: C.attivitaPredefinite.map(function (a) {
-        return { id: a.id, nome: a.nome, icona: a.icona, intensita: '', correzionePct: null };
-      }),
-      umori: C.umoriPredefiniti.map(function (u) {
-        return { id: u.id, nome: u.nome, icona: u.icona, correzionePct: null };
-      }),
+      attivita: C.attivitaPredefinite.map(function (a) { return { id: a.id, nome: a.nome, icona: a.icona }; }),
       vocaleOk: false
     };
   },
@@ -46,23 +38,27 @@ App.Stato = {
   completa: function (d) {
     var base = this.vuoto();
     d = d || {};
+    var vecchie = d.impostazioni || {};
     var out = {
-      impostazioni: Object.assign(base.impostazioni, d.impostazioni || {}),
+      impostazioni: Object.assign(base.impostazioni, vecchie),
       alimenti: Array.isArray(d.alimenti) ? d.alimenti : [],
       modelli: Array.isArray(d.modelli) ? d.modelli : [],
       giorni: (d.giorni && typeof d.giorni === 'object') ? d.giorni : {},
       bozze: (d.bozze && typeof d.bozze === 'object') ? d.bozze : {}
     };
     var imp = out.impostazioni;
-    App.Config.pasti.forEach(function (p) {
-      imp.parametri[p.id] = Object.assign({ rapportoIC: null, sensibilita: null, obiettivo: null }, imp.parametri[p.id] || {});
-    });
+    // Dalla v1.0 (parametri per pasto): si tiene il rapporto solo se era uguale per tutti i pasti.
+    if (imp.rapportoIC == null && vecchie.parametri) {
+      var valori = Object.keys(vecchie.parametri).map(function (k) { return vecchie.parametri[k].rapportoIC; });
+      var uguali = valori.length && valori.every(function (v) { return v != null && v === valori[0]; });
+      if (uguali) imp.rapportoIC = valori[0];
+    }
+    delete imp.parametri; delete imp.insulinaBasale; delete imp.umori;
     imp.insulinaRapida = Object.assign({ nome: 'NovoRapid', durataOre: null, passo: 0.5 }, imp.insulinaRapida || {});
-    imp.insulinaBasale = Object.assign({ nome: 'Tresiba', oraAbituale: '' }, imp.insulinaBasale || {});
     imp.range = Object.assign({ basso: 70, alto: 180 }, imp.range || {});
     if (!Array.isArray(imp.storicoParametri)) imp.storicoParametri = [];
-    if (!Array.isArray(imp.attivita)) imp.attivita = base.impostazioni.attivita;
-    if (!Array.isArray(imp.umori)) imp.umori = base.impostazioni.umori;
+    imp.attivita = (Array.isArray(imp.attivita) ? imp.attivita : base.impostazioni.attivita)
+      .map(function (a) { return { id: a.id, nome: a.nome, icona: a.icona || '🏃' }; });
     return out;
   },
 
@@ -92,7 +88,7 @@ App.Stato = {
   // Crea il giorno solo quando serve davvero scriverci.
   assicuraGiorno: function (iso) {
     var g = this.dati.giorni[iso];
-    if (!g) g = this.dati.giorni[iso] = { pasti: {}, attivita: [], basale: null, ipo: [], boliExtra: [], note: '' };
+    if (!g) g = this.dati.giorni[iso] = { pasti: {}, attivita: [], umoreId: '', ipo: [], boliExtra: [], note: '' };
     g.pasti = g.pasti || {}; g.attivita = g.attivita || []; g.ipo = g.ipo || []; g.boliExtra = g.boliExtra || [];
     return g;
   },
@@ -102,7 +98,7 @@ App.Stato = {
     var g = this.dati.giorni[iso];
     if (!g) return;
     var vuoto = !Object.keys(g.pasti || {}).length && !(g.attivita || []).length &&
-      !g.basale && !(g.ipo || []).length && !(g.boliExtra || []).length && !g.note;
+      !g.basale && !g.umoreId && !(g.ipo || []).length && !(g.boliExtra || []).length && !g.note;
     if (vuoto) delete this.dati.giorni[iso];
   }
 };

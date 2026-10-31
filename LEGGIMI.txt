@@ -1,4 +1,4 @@
-DIARIO INSULINA - versione 1.0
+DIARIO INSULINA - versione 1.1
 ================================
 
 COS'È
@@ -48,11 +48,19 @@ usa il backup.
 3) PRIMA DI USARLA: IMPOSTAZIONI
 --------------------------------
 Finché questi valori mancano, l'app registra tutto ma NON suggerisce dosi:
-  - durata d'azione della rapida (NovoRapid);
-  - soglia di ipoglicemia e dose massima per un bolo;
-  - per ogni pasto: rapporto insulina/carboidrati (I/C), fattore di
-    sensibilità (FSI) e obiettivo glicemico;
-  - facoltativo: % di correzione per attività e stati d'animo.
+  - rapporto insulina/carboidrati (uno solo per tutta la giornata);
+  - soglia di ipoglicemia e dose massima per un bolo.
+Facoltativa: la durata d'azione della NovoRapid, per vedere quanta
+insulina dei boli precedenti è ancora attiva (solo informativo).
+La dose suggerita è carboidrati ÷ rapporto: non c'è correzione
+automatica per la glicemia alta.
+
+PASTI RICCHI DI GRASSI O PROTEINE
+Se un pasto ha almeno 40 g di grassi (o 50 g di proteine con almeno
+20 g di grassi), compare un riquadro con la strategia suggerita:
+dose normale prima del pasto, controllo dopo 2-3 ore e, se la
+glicemia sale, una dose aggiuntiva indicativa (20% della dose del
+pasto). Soglie e percentuale stanno in js/config.js (pastoGrasso).
 
 
 4) DOVE SONO I DATI E COME FARE IL BACKUP
