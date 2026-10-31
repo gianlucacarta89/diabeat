@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0e7490">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Diario Insulina">
+  <title>Diario Insulina</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icone/icona-192.png">
+  <link rel="apple-touch-icon" href="icone/icona-192.png">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/componenti.css">
+  <link rel="stylesheet" href="css/schermi-grandi.css">
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- Librerie (in locale) -->
+  <script src="lib/jspdf-2.5.1.umd.min.js"></script>
+  <script src="lib/jspdf-autotable-3.8.2.min.js"></script>
+  <script src="lib/html5-qrcode-2.3.8.min.js"></script>
+
+  <!-- Impostazioni e regole -->
+  <script src="js/config.js"></script>
+
+  <!-- Base comune -->
+  <script src="js/core/utils.js"></script>
+  <script src="js/core/archivio.js"></script>
+  <script src="js/core/stato.js"></script>
+  <script src="js/core/avvisi.js"></script>
+
+  <!-- Catalogo iniziale dei cibi -->
+  <script src="js/catalogo/alimenti-primi.js"></script>
+  <script src="js/catalogo/alimenti-secondi.js"></script>
+  <script src="js/catalogo/alimenti-contorni.js"></script>
+  <script src="js/catalogo/alimenti-antipasti-dolci.js"></script>
+  <script src="js/catalogo/alimenti-altro.js"></script>
+
+  <!-- Logica -->
+  <script src="js/servizi/sicurezza.js"></script>
+  <script src="js/servizi/parametri.js"></script>
+  <script src="js/servizi/nutrienti.js"></script>
+  <script src="js/servizi/alimenti.js"></script>
+  <script src="js/servizi/modelli.js"></script>
+  <script src="js/servizi/insulina-attiva.js"></script>
+  <script src="js/servizi/calcolo-bolo.js"></script>
+  <script src="js/servizi/diario.js"></script>
+  <script src="js/servizi/voce-testo.js"></script>
+  <script src="js/servizi/open-food-facts.js"></script>
+  <script src="js/servizi/statistiche.js"></script>
+
+  <!-- PDF -->
+  <script src="js/stampa/stampa-base.js"></script>
+  <script src="js/stampa/stampa-report.js"></script>
+
+  <!-- Backup -->
+  <script src="js/dati/backup.js"></script>
+
+  <!-- Interfaccia -->
+  <script src="js/ui/ui-comune.js"></script>
+  <script src="js/ui/ui-calcolo.js"></script>
+  <script src="js/ui/ui-alimento-form.js"></script>
+  <script src="js/ui/ui-pasto-cibi.js"></script>
+  <script src="js/ui/ui-voce.js"></script>
+  <script src="js/ui/ui-scanner.js"></script>
+  <script src="js/ui/ui-pasto.js"></script>
+  <script src="js/ui/ui-giorno-extra.js"></script>
+  <script src="js/ui/ui-giorno.js"></script>
+  <script src="js/ui/ui-modelli.js"></script>
+  <script src="js/ui/ui-archivio.js"></script>
+  <script src="js/ui/ui-statistiche.js"></script>
+  <script src="js/ui/ui-parametri.js"></script>
+  <script src="js/ui/ui-attivita-umori.js"></script>
+  <script src="js/ui/ui-impostazioni.js"></script>
+  <script src="js/ui/navigazione.js"></script>
+
+  <!-- Avvio: sempre l'ultimo -->
+  <script src="js/avvio.js"></script>
+</body>
+</html>

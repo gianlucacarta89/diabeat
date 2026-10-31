@@ -1,0 +1,71 @@
+DIARIO INSULINA - versione 1.0
+================================
+
+COS'È
+Diario dei pasti, delle glicemie e dell'insulina, con calcolo della dose
+suggerita. L'app fa i conti con i parametri che inserisci tu (meglio se
+concordati con il diabetologo): è un aiuto al calcolo, la decisione sulla
+dose resta tua.
+
+
+1) INSTALLARLA SUL TELEFONO (consigliato)
+-----------------------------------------
+Sul telefono l'app va aperta da un indirizzo web (https): solo così
+funzionano la fotocamera per il codice a barre e l'installazione come app.
+I dati restano comunque SOLO sul telefono: non c'è nessun server tuo.
+
+Pubblicazione gratuita con GitHub Pages (una volta sola, dal computer):
+  a. crea un account su github.com;
+  b. crea un repository nuovo (es. "diario-insulina"), anche privato se hai
+     un piano che lo consente per Pages, altrimenti pubblico: nel codice non
+     ci sono dati personali;
+  c. "Add file" -> "Upload files": trascina TUTTO il contenuto della
+     cartella diario-insulina (non la cartella stessa, ma ciò che c'è dentro);
+  d. Settings -> Pages -> Branch "main", cartella "/ (root)" -> Save;
+  e. dopo un paio di minuti l'app è su https://TUONOME.github.io/diario-insulina/
+
+Sul telefono:
+  - Android (Chrome): apri l'indirizzo -> menu ⋮ -> "Installa app"
+    (o "Aggiungi a schermata Home").
+  - iPhone (Safari): apri l'indirizzo -> pulsante Condividi ->
+    "Aggiungi alla schermata Home".
+Da quel momento si apre come un'app e funziona anche senza internet
+(servono internet solo il codice a barre su Open Food Facts e la voce).
+
+Aggiornamenti: carica i file nuovi su GitHub sostituendo i vecchi. Il
+telefono li scarica alla prima apertura con internet (a volte serve
+chiudere e riaprire l'app due volte). I DATI non si toccano.
+
+
+2) APRIRLA SUL COMPUTER
+-----------------------
+Estrai lo ZIP e fai doppio clic su index.html (non aprirlo dall'interno
+dello ZIP). Funziona tutto tranne la fotocamera. Attenzione: i dati del
+computer e quelli del telefono sono separati. Per passarli da uno all'altro
+usa il backup.
+
+
+3) PRIMA DI USARLA: IMPOSTAZIONI
+--------------------------------
+Finché questi valori mancano, l'app registra tutto ma NON suggerisce dosi:
+  - durata d'azione della rapida (NovoRapid);
+  - soglia di ipoglicemia e dose massima per un bolo;
+  - per ogni pasto: rapporto insulina/carboidrati (I/C), fattore di
+    sensibilità (FSI) e obiettivo glicemico;
+  - facoltativo: % di correzione per attività e stati d'animo.
+
+
+4) DOVE SONO I DATI E COME FARE IL BACKUP
+-----------------------------------------
+I dati sono nel browser del dispositivo (IndexedDB). Se cancelli i dati
+del browser o disinstalli l'app, si perdono.
+Impostazioni -> "Esporta backup" scarica un file .json con TUTTO
+(impostazioni, archivio cibi, modelli, diario). Fallo ogni tanto e
+conservalo (es. su Drive). "Importa backup" lo rimette, sostituendo i dati.
+
+
+5) CATALOGO DEI CIBI
+--------------------
+Il catalogo iniziale ha valori medi indicativi per 100 g (tabelle CREA ed
+etichette comuni). Controlla i cibi che usi più spesso e correggili se
+serve. Per i prodotti confezionati vale l'etichetta: usa il codice a barre.
