@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.9
+# MAPPA — DiabEat v1.9.1
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -19,7 +19,7 @@ Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello
 | `css/schermi-grandi.css` | Tablet (pasti su 2 colonne, finestre centrate) e computer (barra in alto) |
 
 ## js/config.js
-Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: grammi, ml, cucchiaio, tazza, piatto, mezzo piatto, numero, con i pulsanti rapidi), attività di partenza, intensità, **stati d'animo**, **limiti dei valori accettati**, **`pastoGrasso`** (soglie di grassi e proteine, % della dose aggiuntiva, orari dei controlli), passi penna, range statistiche, Open Food Facts, testi (premessa, **regole del calcolo mostrate nell'app**, avviso voce, avviso catalogo).
+Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: grammi, ml, cucchiaio, tazza, piatto, mezzo piatto, numero, con i pulsanti rapidi), attività di partenza, intensità, **stati d'animo**, **limiti dei valori accettati**, **`pastoGrasso`** (soglie di grassi e proteine, % della dose aggiuntiva, orari dei controlli), **`pesatiCrudi`** (pasta e riso: prima il crudo), passi penna, range statistiche, Open Food Facts, testi (premessa, **regole del calcolo mostrate nell'app**, avviso voce, avviso catalogo).
 
 ## js/core/ (base comune, core 1.0)
 | File | Funzioni principali |
@@ -38,7 +38,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `sicurezza.js` | `controlla` (limiti di config), `glicemia`, `grammi`, `dose`, `macro`, `ora`, `sottoSoglia`, `oltreMassimo`, `mancantiGenerali` (soglia ipo, dose max) | tutto |
 | `parametri.js` | `rapportoIC`, `mancanti`, `salva` (con **storico**), `storico` | Impostazioni → Rapporto insulina/carboidrati |
 | `nutrienti.js` | `per`, `voce` (copia i valori nel pasto), `aggiornaGrammi`, `totali` | pasto, modelli |
-| `alimenti.js` | `catalogo`, `tutti` (alfabetico), `trova`, `cerca` (punteggio, singolare/plurale), `recentiDettaglio` (20 più recenti + ultima voce), `recenti`, `comeUltimaVolta`, **misure**: `misure`, `unita`, `pesoUnita`, `nomiUnita`, `testoQuantita`, `salvaPeso`; `salva`, `elimina` (catalogo = nascosto), `ripristina`, `perCodice` | Archivio, ricerca cibi, voce, scanner |
+| `alimenti.js` | `catalogo`, `tutti` (alfabetico), `trova`, `cerca` (punteggio, singolare/plurale, crudo prima per `pesatiCrudi`), `recentiDettaglio` (20 più recenti + ultima voce), `recenti`, `comeUltimaVolta`, **misure**: `misure`, `unita`, `pesoUnita`, `nomiUnita`, `testoQuantita`, `salvaPeso`; `salva`, `elimina` (catalogo = nascosto), `ripristina`, `perCodice` | Archivio, ricerca cibi, voce, scanner |
 | `modelli.js` | `tutti`, `salva`, `elimina`, `vociDa`, `carboidrati` | Archivio → Modelli, pulsante 📋 Modello |
 | `insulina-attiva.js` | `boli`, `calcola` (modello lineare sulla durata impostata) | informazione nel calcolo, riquadro "insulina attiva adesso" |
 | `pasto-grasso.js` | `livello` (nessuno/medio/alto), `valuta` (dose aggiuntiva indicativa, orari di controllo), `oraPiu` | **riquadro 🧈 pasto grasso**, chip nel diario, statistiche, PDF |

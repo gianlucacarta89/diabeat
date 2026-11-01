@@ -8,7 +8,7 @@ window.App = window.App || {};
 
 App.Config = {
   nome: 'DiabEat',
-  versione: '1.9',
+  versione: '1.9.1',
   // Nome dello spazio di salvataggio: deve essere diverso per ogni app.
   // NON cambiarlo: è quello della prima versione, cambiarlo farebbe sparire i dati salvati.
   nomeArchivio: 'diario-insulina-gc',
@@ -102,6 +102,9 @@ App.Config = {
     risultati: 24,
     campi: 'product_name,product_name_it,brands,nutriments,serving_quantity,serving_size'
   },
+
+  // Cibi che pesi crudi: se scrivi o dici solo "pasta" o "riso", la ricerca propone prima la versione cruda.
+  pesatiCrudi: ['pasta', 'riso'],
 
   // Riconoscimento vocale.
   lingua: 'it-IT',

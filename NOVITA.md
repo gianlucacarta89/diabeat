@@ -1,5 +1,10 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.9.1 — 01/11/2026
+- **Pasta e riso crudi per primi:** se scrivi o dici solo "pasta" o "riso" (senza "cotta" o "cruda"), la ricerca e la voce propongono prima la versione cruda, perché li pesi crudi. Con "pasta cotta" propone la cotta. L'elenco dei cibi è in `pesatiCrudi` in config.
+
+File: js/servizi/alimenti.js, js/config.js, sw.js.
+
 ## v1.9 — 01/11/2026
 - **Pasto sbagliato? Spostalo:** nella finestra del pasto, sotto ora e glicemia, il pulsante "🔁 Pasto sbagliato? Spostalo in un altro pasto" porta ora, glicemia, cibi, dose e note in un altro pasto dello stesso giorno (es. da cena a spuntino prenanna). Funziona sia con i pasti salvati sia con quelli ancora da salvare; se il pasto di arrivo è già compilato chiede prima di sostituirlo.
 

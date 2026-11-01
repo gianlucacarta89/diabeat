@@ -69,6 +69,7 @@ App.Alimenti = {
     var lista = this.tutti();
     if (!q) return lista;
     var parole = q.split(' ');
+    var crudoPrima = !/\b(cott|crud)/.test(q) && (App.Config.pesatiCrudi || []).some(function (c) { return parole.indexOf(c) >= 0; });
     // Forme singolari/plurali: uova → uovo, mele → mela, biscotti → biscotto.
     var varianti = function (w) {
       if (w.length < 4) return [w];
@@ -87,6 +88,8 @@ App.Alimenti = {
       }
       // Bonus se il nome del cibo comincia con la prima parola cercata.
       if (varianti(parole[0]).some(function (x) { return n.indexOf(' ' + x) === 0; })) punti += 2;
+      // "pasta" o "riso" senza dire cotto/crudo: prima il crudo (si pesano crudi).
+      if (crudoPrima && /\scrud[aoie]\s/.test(n.replace(/,/g, ' '))) punti += 1;
       return { a: a, punti: punti };
     }).filter(Boolean).sort(function (x, y) {
       return y.punti - x.punti || x.a.nome.length - y.a.nome.length || x.a.nome.localeCompare(y.a.nome, 'it');
