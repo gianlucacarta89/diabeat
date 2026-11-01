@@ -1,6 +1,6 @@
 /* ============================================================
    ui/ui-archivio.js
-   Scheda "Archivio": cibi (ricerca, categorie, nuovo, scansione,
+   Scheda "Archivio": cibi (ricerca, nuovo, scansione,
    modifica, eliminazione) e modelli di pasto.
    Dipende da: App.Alimenti, App.Config, App.Stato, App.UIAlimentoForm,
                App.UIScanner, App.UIModelli, App.UIPastoCibi, App.Avvisi,
@@ -11,7 +11,6 @@ window.App = window.App || {};
 
 App.UIArchivio = {
   vista: 'cibi',
-  categoria: '',
   testo: '',
 
   disegna: function (c) {
@@ -34,8 +33,7 @@ App.UIArchivio = {
       '<div class="griglia-2"><button class="btn btn-verde" data-az="nuovo">＋ Nuovo cibo</button>' +
       '<button class="btn" data-az="scan">📷 Codice a barre</button></div>' +
       '<input type="search" id="a-testo" placeholder="Cerca nell\'archivio" style="margin-top:10px" value="' + U.esc(this.testo) + '">' +
-      '<div class="filtri" id="a-filtri" style="margin-top:8px"></div>' +
-      '<p class="tenue" id="a-conta" style="margin:2px 0 6px;font-size:.85rem"></p>' +
+      '<p class="tenue" id="a-conta" style="margin:6px 0;font-size:.85rem"></p>' +
     '</div>');
     box.appendChild(testa);
     var lista = U.el('<div class="card"><ul class="elenco"></ul></div>');
@@ -51,25 +49,12 @@ App.UIArchivio = {
       box.appendChild(r);
     }
 
-    var filtri = testa.querySelector('#a-filtri');
-    [{ id: '', nome: 'Tutti', icona: '' }].concat(App.Config.categorie).forEach(function (cat) {
-      var chip = U.el('<span class="chip chip-scelta">' + cat.icona + ' ' + cat.nome + '</span>');
-      chip.classList.toggle('scelto', self.categoria === cat.id);
-      chip.onclick = function () { self.categoria = cat.id; App.Nav.disegna(); };
-      filtri.appendChild(chip);
-    });
-
     var disegnaLista = function () {
       var ul = lista.querySelector('ul');
       ul.innerHTML = '';
-      var elementi = App.Alimenti.cerca(self.testo, self.categoria);
+      var elementi = App.Alimenti.cerca(self.testo);
       testa.querySelector('#a-conta').textContent = elementi.length + (elementi.length === 1 ? ' cibo' : ' cibi');
-      var catCorrente = '';
       elementi.slice(0, 300).forEach(function (a) {
-        if (!self.testo && a.categoria !== catCorrente) {
-          catCorrente = a.categoria;
-          ul.appendChild(U.el('<li style="background:#eef2f5;margin:0 -14px;padding:6px 14px"><b>' + U.esc(App.Alimenti.nomeCategoria(a.categoria)) + '</b></li>'));
-        }
         var modificato = a.id.indexOf('cat:') === 0 && /modificato/.test(a.fonte || '');
         var li = U.el('<li>' + App.UIPastoCibi.rigaAlimento(a).replace('</small></div>',
           (a.fonte && a.fonte !== 'Catalogo' ? ' · ' + U.esc(a.fonte) : '') + '</small></div>') +
@@ -94,10 +79,10 @@ App.UIArchivio = {
 
     testa.querySelector('#a-testo').addEventListener('input', function (e) { self.testo = e.target.value; disegnaLista(); });
     testa.querySelector('[data-az=nuovo]').onclick = function () {
-      App.UIAlimentoForm.apri({ nome: self.testo, categoria: self.categoria }, function () { App.Nav.disegna(); });
+      App.UIAlimentoForm.apri({ nome: self.testo }, function () { App.Nav.disegna(); });
     };
     testa.querySelector('[data-az=scan]').onclick = function () {
-      App.UIScanner.apri(function (a) { self.testo = a.nome; self.categoria = ''; App.Nav.disegna(); });
+      App.UIScanner.apri(function (a) { self.testo = a.nome; App.Nav.disegna(); });
     };
     disegnaLista();
   }

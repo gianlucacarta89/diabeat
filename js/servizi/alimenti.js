@@ -4,6 +4,9 @@
    i cibi personali e le correzioni salvate dall'utente.
    Un cibo del catalogo corretto dall'utente viene salvato tra i
    personali con lo stesso id e prende il posto dell'originale.
+   Dalla v1.4 i cibi non hanno categorie: un unico elenco.
+   Ogni cibo può avere i pesi delle misure casalinghe (cucchiaio,
+   tazza, piatto, numero/pezzo): vedi App.Config.unitaMisura.
    Dipende da: App.Config, App.Catalogo, App.Stato, App.Sicurezza, App.Utils.
    Usato da: ui/ui-archivio.js, ui/ui-pasto-cibi.js, ui/ui-scanner.js,
              servizi/voce-testo.js, servizi/modelli.js.
@@ -12,41 +15,40 @@ window.App = window.App || {};
 
 App.Alimenti = {
   _cacheCatalogo: null,
+  CHIAVI_MISURE: ['cucchiaio', 'tazza', 'piatto', 'numero'],
 
   // Catalogo in forma di oggetti (calcolato una volta sola).
   catalogo: function () {
     if (this._cacheCatalogo) return this._cacheCatalogo;
     var out = [];
     var C = App.Catalogo || {};
-    var porzioni = C.porzioni || {};
-    App.Config.categorie.forEach(function (cat) {
-      (C[cat.id] || []).forEach(function (r) {
-        var p = porzioni[r[0]];
-        out.push({ id: 'cat:' + App.Utils.normalizza(r[0]).replace(/ /g, '-'), nome: r[0], categoria: cat.id,
+    var misure = C.misure || {};
+    // Ogni elenco del catalogo (i file sono divisi solo per comodità).
+    Object.keys(C).forEach(function (k) {
+      if (!Array.isArray(C[k])) return;
+      C[k].forEach(function (r) {
+        var m = misure[r[0]] || {};
+        out.push({ id: 'cat:' + App.Utils.normalizza(r[0]).replace(/ /g, '-'), nome: r[0],
           carb: r[1], prot: r[2], grassi: r[3], fonte: 'Catalogo',
-          porzione: p ? { nome: p[0], plurale: p[1], grammi: p[2] } : null });
+          misure: {
+            cucchiaio: m.cucchiaio || null, tazza: m.tazza || null, piatto: m.piatto || null,
+            numero: m.numero ? m.numero[0] : null,
+            numeroNome: m.numero ? m.numero[1] : '', numeroPlurale: m.numero ? m.numero[2] : ''
+          } });
       });
     });
     this._cacheCatalogo = out;
     return out;
   },
 
-  ordineCategoria: function (id) {
-    var i = App.Config.categorie.map(function (c) { return c.id; }).indexOf(id);
-    return i < 0 ? 99 : i;
-  },
-
-  // Tutti i cibi visibili, ordinati per categoria (primi per primi) e nome.
+  // Tutti i cibi visibili, in ordine alfabetico.
   tutti: function () {
     var personali = App.Stato.dati.alimenti;
     var perId = {};
     personali.forEach(function (a) { perId[a.id] = a; });
-    var lista = this.catalogo().filter(function (a) { return !perId[a.id]; }).concat(personali)
-      .filter(function (a) { return !a.nascosto; });
-    var self = this;
-    return lista.sort(function (a, b) {
-      return self.ordineCategoria(a.categoria) - self.ordineCategoria(b.categoria) || a.nome.localeCompare(b.nome, 'it');
-    });
+    return this.catalogo().filter(function (a) { return !perId[a.id]; }).concat(personali)
+      .filter(function (a) { return !a.nascosto; })
+      .sort(function (a, b) { return a.nome.localeCompare(b.nome, 'it'); });
   },
 
   trova: function (id) {
@@ -60,22 +62,22 @@ App.Alimenti = {
   },
 
   /* Ricerca per testo. Punteggio: parola intera > inizio parola > contenuto;
-     a parità vale l'ordine delle categorie (primi per primi). */
-  cerca: function (testo, categoria) {
-    var U = App.Utils, self = this;
+     a parità vince il nome più corto, poi l'ordine alfabetico. */
+  cerca: function (testo) {
+    var U = App.Utils;
     var q = U.normalizza(testo);
-    var lista = this.tutti().filter(function (a) { return !categoria || a.categoria === categoria; });
+    var lista = this.tutti();
     if (!q) return lista;
     var parole = q.split(' ');
+    // Forme singolari/plurali: uova → uovo, mele → mela, biscotti → biscotto.
+    var varianti = function (w) {
+      if (w.length < 4) return [w];
+      var r = w.slice(0, -1);
+      return [w, r + 'o', r + 'a', r + 'e', r + 'i'];
+    };
     return lista.map(function (a) {
       var n = ' ' + U.normalizza(a.nome) + ' ';
       var punti = 0;
-      // Forme singolari/plurali: uova → uovo, mele → mela, biscotti → biscotto.
-      var varianti = function (w) {
-        if (w.length < 4) return [w];
-        var r = w.slice(0, -1);
-        return [w, r + 'o', r + 'a', r + 'e', r + 'i'];
-      };
       for (var i = 0; i < parole.length; i++) {
         var v = varianti(parole[i]), w = parole[i];
         if (v.some(function (x) { return n.indexOf(' ' + x + ' ') >= 0; })) punti += 3;
@@ -87,8 +89,7 @@ App.Alimenti = {
       if (varianti(parole[0]).some(function (x) { return n.indexOf(' ' + x) === 0; })) punti += 2;
       return { a: a, punti: punti };
     }).filter(Boolean).sort(function (x, y) {
-      return y.punti - x.punti || self.ordineCategoria(x.a.categoria) - self.ordineCategoria(y.a.categoria) ||
-        x.a.nome.length - y.a.nome.length;
+      return y.punti - x.punti || x.a.nome.length - y.a.nome.length || x.a.nome.localeCompare(y.a.nome, 'it');
     }).map(function (x) { return x.a; });
   },
 
@@ -107,14 +108,72 @@ App.Alimenti = {
       .map(function (id) { return self.trova(id); }).filter(Boolean).slice(0, max || 12);
   },
 
+  // --- Misure casalinghe ------------------------------------------
+
+  // Misure di un cibo, anche per i cibi salvati con la v1.3 (campo "porzione").
+  misure: function (a) {
+    var m = Object.assign({ cucchiaio: null, tazza: null, piatto: null, numero: null, numeroNome: '', numeroPlurale: '' },
+      (a && a.misure) || {});
+    var p = a && a.porzione;
+    if (p && p.grammi && !(a.misure)) {
+      if (/^tazz/.test(p.nome)) m.tazza = p.grammi;
+      else if (/^cucchiai(o|i)$/.test(p.nome)) m.cucchiaio = p.grammi;
+      else { m.numero = p.grammi; m.numeroNome = p.nome; m.numeroPlurale = p.plurale; }
+    }
+    return m;
+  },
+
+  unita: function (id) {
+    return App.Config.unitaMisura.filter(function (u) { return u.id === id; })[0] || App.Config.unitaMisura[0];
+  },
+
+  // Grammi di 1 unità per quel cibo; null se il peso non è ancora stato indicato.
+  pesoUnita: function (a, unitaId) {
+    var u = this.unita(unitaId);
+    if (!u.peso) return 1;
+    var g = this.misure(a)[u.peso];
+    return g ? g * (u.fattore || 1) : null;
+  },
+
+  // Nome della misura per quel cibo: "uovo/uova" per il numero, altrimenti quello dell'unità.
+  nomiUnita: function (a, unitaId) {
+    var u = this.unita(unitaId), m = this.misure(a);
+    if (u.id === 'numero' && m.numeroNome) return { uno: m.numeroNome, molti: m.numeroPlurale || m.numeroNome };
+    return { uno: u.uno, molti: u.molti };
+  },
+
+  // "2 uova", "1½ tazze", "½ tazza", "mezzo piatto", "200 ml". Per i grammi: ''.
+  testoQuantita: function (a, unitaId, quante) {
+    if (unitaId === 'g' || quante == null) return '';
+    var U = App.Utils, n = this.nomiUnita(a, unitaId);
+    if (unitaId === 'ml') return U.dec(quante, 0) + ' ml';
+    if (unitaId === 'mezzoPiatto' && quante === 1) return 'mezzo piatto';
+    var intero = Math.floor(quante), mezzo = Math.abs(quante - intero - 0.5) < 0.01;
+    var num = mezzo ? (intero ? intero + '½' : '½') : U.dec(quante, 2);
+    return num + ' ' + (quante > 1 ? n.molti : n.uno);
+  },
+
+  // Salva il peso di una misura per un cibo (anche del catalogo). Restituisce { errore } o { alimento }.
+  salvaPeso: function (a, chiave, grammi) {
+    var e = App.Sicurezza.controlla('grammi', grammi, 'Peso', true);
+    if (e) return { errore: e };
+    var m = this.misure(a);
+    m[chiave] = grammi;
+    return this.salva(Object.assign({}, a, { misure: m }));
+  },
+
+  // --- Salvataggio -------------------------------------------------
+
   valida: function (a) {
     if (!a.nome || !String(a.nome).trim()) return 'Scrivi il nome del cibo.';
-    if (!App.Config.categorie.some(function (c) { return c.id === a.categoria; })) return 'Scegli la categoria.';
-    var p = a.porzione;
-    if (p && (p.nome || p.grammi != null)) {
-      if (!p.nome) return 'Unità: scrivi il nome (es. uovo, tazza, fetta) o lascia vuoti tutti e due i campi.';
-      var e = App.Sicurezza.controlla('grammi', p.grammi, 'Grammi per unità', true);
-      if (e) return e;
+    var m = a.misure || {};
+    var nomi = { cucchiaio: 'Peso di 1 cucchiaio', tazza: 'Peso di 1 tazza', piatto: 'Peso di 1 piatto', numero: 'Peso di 1 pezzo' };
+    for (var i = 0; i < this.CHIAVI_MISURE.length; i++) {
+      var k = this.CHIAVI_MISURE[i];
+      if (m[k] != null) {
+        var e = App.Sicurezza.controlla('grammi', m[k], nomi[k], false);
+        if (e) return e;
+      }
     }
     return App.Sicurezza.macro(a.carb, a.prot, a.grassi);
   },
@@ -124,15 +183,17 @@ App.Alimenti = {
     var e = this.valida(dati);
     if (e) return { errore: e };
     var lista = App.Stato.dati.alimenti;
+    var m = this.misure(dati);
     var a = {
       id: dati.id || ('pers:' + App.Utils.id()),
-      nome: String(dati.nome).trim(), categoria: dati.categoria,
+      nome: String(dati.nome).trim(),
       carb: dati.carb, prot: dati.prot, grassi: dati.grassi,
       fonte: dati.fonte || 'Personale', codice: dati.codice || '',
-      porzione: (dati.porzione && dati.porzione.nome) ? {
-        nome: String(dati.porzione.nome).trim().toLowerCase(),
-        plurale: String(dati.porzione.plurale || '').trim().toLowerCase(),
-        grammi: dati.porzione.grammi } : null
+      misure: {
+        cucchiaio: m.cucchiaio || null, tazza: m.tazza || null, piatto: m.piatto || null, numero: m.numero || null,
+        numeroNome: String(m.numeroNome || '').trim().toLowerCase(),
+        numeroPlurale: String(m.numeroPlurale || '').trim().toLowerCase()
+      }
     };
     if (a.id.indexOf('cat:') === 0 && a.fonte === 'Catalogo') a.fonte = 'Catalogo, modificato';
     var i = lista.map(function (x) { return x.id; }).indexOf(a.id);
@@ -160,19 +221,5 @@ App.Alimenti = {
   ripristina: function (id) {
     App.Stato.dati.alimenti = App.Stato.dati.alimenti.filter(function (a) { return a.id !== id; });
     App.Stato.salva('alimenti');
-  },
-
-  // "1 uovo", "2 uova", "1½ tazze", "0,5 tazza". quante: numero di unità.
-  testoPorzione: function (porzione, quante) {
-    if (!porzione) return '';
-    var intero = Math.floor(quante), mezzo = Math.abs(quante - intero - 0.5) < 0.01;
-    var num = mezzo ? (intero ? intero + '½' : '½') : App.Utils.dec(quante, 2);
-    var plur = quante > 1 ? (porzione.plurale || porzione.nome) : porzione.nome;
-    return num + ' ' + plur;
-  },
-
-  nomeCategoria: function (id) {
-    var c = App.Config.categorie.filter(function (x) { return x.id === id; })[0];
-    return c ? c.icona + ' ' + c.nome : id;
   }
 };

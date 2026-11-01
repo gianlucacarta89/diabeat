@@ -35,7 +35,7 @@ App.UIVoce = {
       (conVoce ? '<button class="mic" aria-label="Parla">🎤</button><p class="centro tenue" id="v-stato">Tocca il microfono e di\' cosa mangi.</p>'
                : '<div class="riquadro riquadro-info">Scrivi cosa mangi, oppure usa il microfono della tastiera.</div>') +
       '<label for="v-testo">Frase</label>' +
-      '<textarea id="v-testo" placeholder="es. 2 uova, una tazza e mezza di latte, 3 biscotti secchi"></textarea>' +
+      '<textarea id="v-testo" placeholder="es. un piatto di pasta, 2 uova, una tazza di latte, 2 cucchiai di olio"></textarea>' +
       '<button class="btn btn-contorno btn-pieno" data-az="analizza" style="margin-top:8px">Trova i cibi</button>' +
       '<div id="v-proposte"></div>' +
     '</div>');
@@ -56,18 +56,29 @@ App.UIVoce = {
             ? '<select class="cresce" style="flex:1;min-width:0" data-i="' + i + '">' + opz + '</select>'
             : '<div class="nome" style="color:var(--arancio)">Non trovato in archivio: aggiungilo da 🔍 Cerca</div>') +
           '<input class="voce-grammi" inputmode="decimal" data-g="' + i + '" placeholder="g" value="' + (p.grammi != null ? p.grammi : '') + '"><span class="tenue">g</span>' +
-          '<div style="width:100%"><small class="tenue" data-q="' + i + '">' + U.esc(p.quantita || '') + '</small></div>' +
+          '<div style="width:100%"><small class="tenue" data-q="' + i + '"></small></div>' +
           '</li>');
-        // Cambiando cibo, se avevi detto dei pezzi ("2 uova") i grammi si ricalcolano con la sua unità.
+        // Sotto la riga: la misura capita ("1 piatto") o cosa manca per calcolare i grammi.
+        var nota = function (a) {
+          var q = li.querySelector('[data-q]');
+          if (p.quantita) { q.textContent = p.quantita; q.style.color = ''; return; }
+          if (p.unita && p.unita !== 'g' && a && App.Alimenti.pesoUnita(a, p.unita) == null) {
+            var u = App.Alimenti.unita(p.unita);
+            q.textContent = 'Peso di 1 ' + (u.peso === 'numero' ? 'pezzo' : u.peso) + ' non indicato per questo cibo: scrivi i grammi.';
+            q.style.color = 'var(--arancio)';
+          } else q.textContent = '';
+        };
+        nota(p.candidati[0]);
+        // Cambiando cibo, se avevi detto una misura ("2 uova", "un piatto") i grammi si ricalcolano.
         var sel = li.querySelector('select');
         if (sel) sel.onchange = function () {
           var a = p.candidati[+sel.value];
-          var dp = App.VoceTesto.daPezzi(a, p.pezzi);
-          if (dp) { li.querySelector('input').value = dp.grammi; p.quantita = dp.quantita; }
-          else if (p.pezzi != null) { li.querySelector('input').value = ''; p.quantita = ''; }
-          li.querySelector('[data-q]').textContent = p.quantita || '';
+          var dm = App.VoceTesto.daMisura(a, p.unita, p.quante);
+          if (dm) { li.querySelector('input').value = dm.grammi; p.quantita = dm.quantita; }
+          else if (p.unita) { li.querySelector('input').value = ''; p.quantita = ''; }
+          nota(a);
         };
-        li.querySelector('input').oninput = function () { p.quantita = ''; li.querySelector('[data-q]').textContent = ''; };
+        li.querySelector('input').oninput = function () { p.quantita = ''; p.unita = null; li.querySelector('[data-q]').textContent = ''; };
         card.querySelector('ul').appendChild(li);
       });
       box.appendChild(card);

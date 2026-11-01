@@ -45,7 +45,7 @@ App.UIScanner = {
         if (chiuso) return;
         fin.chiudi();
         var avviso = r.trovato
-          ? 'Valori trovati su Open Food Facts: <b>controllali con l\'etichetta</b> prima di salvare. Scegli anche la categoria.'
+          ? 'Valori trovati su Open Food Facts: <b>controllali con l\'etichetta</b> prima di salvare.'
           : U.esc(r.errore || 'Prodotto non trovato.');
         App.UIAlimentoForm.apri({
           nome: r.nome || '', carb: r.carb, prot: r.prot, grassi: r.grassi,

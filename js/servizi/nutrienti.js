@@ -16,11 +16,11 @@ App.Nutrienti = {
   },
 
   // Crea la voce di un pasto: copia i valori, così il diario non cambia se poi correggi l'archivio.
-  // quantita (facoltativa): testo della porzione scelta, es. "2 uova".
+  // quantita (facoltativa): testo della misura scelta, es. "2 uova", "1 piatto".
   voce: function (alimento, grammi, quantita) {
     var m = this.per(alimento, grammi);
     return {
-      alimentoId: alimento.id, nome: alimento.nome, categoria: alimento.categoria,
+      alimentoId: alimento.id, nome: alimento.nome,
       per100: { carb: alimento.carb, prot: alimento.prot, grassi: alimento.grassi },
       grammi: grammi, quantita: quantita || '', carb: m.carb, prot: m.prot, grassi: m.grassi
     };

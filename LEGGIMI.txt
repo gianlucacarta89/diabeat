@@ -1,4 +1,4 @@
-DIABEAT - versione 1.3 (ex Diario Insulina)
+DIABEAT - versione 1.4 (ex Diario Insulina)
 ===========================================
 
 COS'È
@@ -72,8 +72,10 @@ Impostazioni -> "Esporta backup" scarica un file .json con TUTTO
 conservalo (es. su Drive). "Importa backup" lo rimette, sostituendo i dati.
 
 
-5) CATALOGO DEI CIBI
---------------------
+5) CATALOGO DEI CIBI E MISURE
+-----------------------------
 Il catalogo iniziale ha valori medi indicativi per 100 g (tabelle CREA ed
-etichette comuni). Controlla i cibi che usi più spesso e correggili se
+etichette comuni). La quantità si indica in grammi, ml, cucchiai, tazze,
+piatti, mezzi piatti o pezzi: i pesi delle misure sono indicativi e si
+correggono per ogni cibo. Controlla i cibi che usi più spesso e correggili se
 serve. Per i prodotti confezionati vale l'etichetta: usa il codice a barre.

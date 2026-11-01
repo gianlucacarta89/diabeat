@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.3
+# MAPPA — DiabEat v1.4
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -19,7 +19,7 @@ Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello
 | `css/schermi-grandi.css` | Tablet (pasti su 2 colonne, finestre centrate) e computer (barra in alto) |
 
 ## js/config.js
-Nome, versione, nome archivio, **pasti**, **categorie** (ordine = priorità di ricerca), attività di partenza, intensità, **stati d'animo**, **limiti dei valori accettati**, **`pastoGrasso`** (soglie di grassi e proteine, % della dose aggiuntiva, orari dei controlli), passi penna, range statistiche, Open Food Facts, testi (premessa, **regole del calcolo mostrate nell'app**, avviso voce, avviso catalogo).
+Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: grammi, ml, cucchiaio, tazza, piatto, mezzo piatto, numero, con i pulsanti rapidi), attività di partenza, intensità, **stati d'animo**, **limiti dei valori accettati**, **`pastoGrasso`** (soglie di grassi e proteine, % della dose aggiuntiva, orari dei controlli), passi penna, range statistiche, Open Food Facts, testi (premessa, **regole del calcolo mostrate nell'app**, avviso voce, avviso catalogo).
 
 ## js/core/ (base comune, core 1.0)
 | File | Funzioni principali |
@@ -30,7 +30,7 @@ Nome, versione, nome archivio, **pasti**, **categorie** (ordine = priorità di r
 | `avvisi.js` | `toast`, `finestra` (sovrapponibili), `conferma` → Promise |
 
 ## js/catalogo/ (catalogo iniziale, righe `[nome, carb, prot, grassi]` per 100 g)
-`alimenti-primi.js`, `alimenti-secondi.js`, `alimenti-contorni.js`, `alimenti-antipasti-dolci.js`, `alimenti-altro.js` (pane, colazione, frutta, bevande, condimenti), **`porzioni.js`** (unità casalinghe: nome del cibo → [unità, plurale, grammi]).
+`alimenti-primi.js`, `alimenti-secondi.js`, `alimenti-contorni.js`, `alimenti-antipasti-dolci.js`, `alimenti-altro.js` (pane, colazione, frutta, bevande, condimenti), **`porzioni.js`** (`App.Catalogo.misure`: nome del cibo → pesi di cucchiaio, tazza, piatto, numero). I file sono divisi per tipo di cibo solo per comodità: nell'app non ci sono categorie.
 
 ## js/servizi/ (logica, senza interfaccia)
 | File | Funzioni principali | Usato da |
@@ -38,13 +38,13 @@ Nome, versione, nome archivio, **pasti**, **categorie** (ordine = priorità di r
 | `sicurezza.js` | `controlla` (limiti di config), `glicemia`, `grammi`, `dose`, `macro`, `ora`, `sottoSoglia`, `oltreMassimo`, `mancantiGenerali` (soglia ipo, dose max) | tutto |
 | `parametri.js` | `rapportoIC`, `mancanti`, `salva` (con **storico**), `storico` | Impostazioni → Rapporto insulina/carboidrati |
 | `nutrienti.js` | `per`, `voce` (copia i valori nel pasto), `aggiornaGrammi`, `totali` | pasto, modelli |
-| `alimenti.js` | `catalogo`, `tutti`, `cerca` (punteggio, singolare/plurale, priorità categoria), `testoPorzione`, `recenti`, `salva`, `elimina` (catalogo = nascosto), `ripristina`, `perCodice` | Archivio, ricerca cibi, voce, scanner |
+| `alimenti.js` | `catalogo`, `tutti` (alfabetico), `trova`, `cerca` (punteggio, singolare/plurale), `recenti`, **misure**: `misure`, `unita`, `pesoUnita`, `nomiUnita`, `testoQuantita`, `salvaPeso`; `salva`, `elimina` (catalogo = nascosto), `ripristina`, `perCodice` | Archivio, ricerca cibi, voce, scanner |
 | `modelli.js` | `tutti`, `salva`, `elimina`, `vociDa`, `carboidrati` | Archivio → Modelli, pulsante 📋 Modello |
 | `insulina-attiva.js` | `boli`, `calcola` (modello lineare sulla durata impostata) | informazione nel calcolo, riquadro "insulina attiva adesso" |
 | `pasto-grasso.js` | `livello` (nessuno/medio/alto), `valuta` (dose aggiuntiva indicativa, orari di controllo), `oraPiu` | **riquadro 🧈 pasto grasso**, chip nel diario, statistiche, PDF |
 | `calcolo-bolo.js` | **`calcola`: tutte le regole della dose** (ipo → parametri → carboidrati ÷ I/C → arrotondamento → avvisi e informazioni → pasto grasso) | riquadro del calcolo |
 | `diario.js` | `salvaPasto`, `eliminaPasto`, **bozze** (`leggiBozza`, `salvaBozza`, `togliBozza`), `salvaUmore` (uno al giorno), `aggiungiAttivita` (con intensità), `aggiungiIpo`, `aggiungiBoloExtra`, `rimuovi`, `salvaNote`, `cancellaDiario` | Diario |
-| `voce-testo.js` | `analizza(frase)` → cibi + grammi + candidati; `parolaNumero`, `pezzo` (grammi o pezzi), `dividi`, `ordina` (recenti, unità), `daPezzi` | pulsante 🎤 Voce |
+| `voce-testo.js` | `analizza(frase)` → cibi + grammi + candidati; `parolaNumero`, `pezzo` (grammi o unità + quantità), `unitaDi`, `dividi`, `ordina` (recenti, misura), `daMisura` | pulsante 🎤 Voce |
 | `open-food-facts.js` | `cerca(codice)` | pulsante 📷 Codice |
 | `statistiche.js` | `calcola(da, a)` | Statistiche, PDF |
 
@@ -68,11 +68,11 @@ Nome, versione, nome archivio, **pasti**, **categorie** (ordine = priorità di r
 | `ui-giorno-extra.js` | nel Diario: **Attività (con intensità), Boli extra, Ipoglicemie, Note** e le loro finestre; `finestraBolo` usata anche per la dose aggiuntiva del pasto grasso |
 | `ui-pasto.js` | finestra del **pasto** (ora, glicemia, cibi, dose, note, salva/elimina/scarta bozza) |
 | `ui-calcolo.js` | riquadro **Dose** nel pasto (passaggi, dose suggerita, avvisi, informazioni, **riquadro 🧈 pasto grasso** con pulsante "Registra la dose aggiuntiva", "Come si calcola") |
-| `ui-pasto-cibi.js` | pulsanti **🔍 Cerca** (ricerca + recenti), finestra **grammi** con i pulsanti delle **porzioni**, **📋 Modello** |
+| `ui-pasto-cibi.js` | pulsanti **🔍 Cerca** (ricerca + recenti), finestra **"Quanto ne mangi?"** con unità di misura e peso della misura, **📋 Modello** |
 | `ui-voce.js` | pulsante **🎤 Voce** (consenso, microfono, frase scritta, conferma cibi) |
 | `ui-scanner.js` | pulsanti **📷 Codice** / **📷 Codice a barre** |
-| `ui-alimento-form.js` | finestra **Nuovo cibo / Modifica cibo / Controlla il prodotto** (con unità casalinga facoltativa) |
-| `ui-archivio.js` | scheda **Archivio** → Cibi (ricerca, categorie, modifica, elimina, ripristina) |
+| `ui-alimento-form.js` | finestra **Nuovo cibo / Modifica cibo / Controlla il prodotto** (con i pesi delle misure: cucchiaio, tazza, piatto, pezzo) |
+| `ui-archivio.js` | scheda **Archivio** → Cibi (ricerca, modifica, elimina, ripristina) |
 | `ui-modelli.js` | scheda **Archivio** → Modelli di pasto |
 | `ui-statistiche.js` | scheda **Statistiche** |
 | `ui-impostazioni.js` | scheda **Impostazioni**: Rapporto I/C, Insulina rapida, Sicurezza, Attività, Dati e backup, Cancella diario, voce |

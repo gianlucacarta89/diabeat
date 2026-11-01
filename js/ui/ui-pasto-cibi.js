@@ -1,7 +1,8 @@
 /* ============================================================
    ui/ui-pasto-cibi.js
    Scelta dei cibi: ricerca nell'archivio (con i cibi recenti),
-   richiesta dei grammi, scelta di un modello di pasto.
+   quantità con l'unità di misura (grammi, ml, cucchiaio, tazza,
+   piatto, mezzo piatto, numero), scelta di un modello di pasto.
    Dipende da: App.Alimenti, App.Modelli, App.Nutrienti, App.Sicurezza,
                App.UIComune, App.UIAlimentoForm, App.Avvisi, App.Config, App.Utils.
    Usato da: ui/ui-pasto.js, ui/ui-modelli.js.
@@ -11,50 +12,43 @@ window.App = window.App || {};
 App.UIPastoCibi = {
   // Riga di un cibo in un elenco.
   rigaAlimento: function (a) {
-    var U = App.Utils;
+    var U = App.Utils, A = App.Alimenti, m = A.misure(a);
+    var mis = [];
+    if (m.numero) mis.push('1 ' + (m.numeroNome || 'pezzo') + ' = ' + U.dec(m.numero) + ' g');
+    if (m.piatto) mis.push('1 piatto = ' + U.dec(m.piatto) + ' g');
+    if (m.tazza) mis.push('1 tazza = ' + U.dec(m.tazza) + ' g');
+    if (m.cucchiaio) mis.push('1 cucchiaio = ' + U.dec(m.cucchiaio) + ' g');
     return '<div class="nome">' + U.esc(a.nome) + '<small>' + U.dec(a.carb) + ' g CHO · ' + U.dec(a.prot) + ' P · ' +
-      U.dec(a.grassi) + ' G per 100 g' + (a.porzione ? ' · 1 ' + U.esc(a.porzione.nome) + ' = ' + U.dec(a.porzione.grammi) + ' g' : '') + '</small></div>';
+      U.dec(a.grassi) + ' G per 100 g' + (mis.length ? '<br>' + U.esc(mis.join(' · ')) : '') + '</small></div>';
   },
 
   /* Ricerca con aggiunta multipla: la finestra resta aperta finché non premi "Fatto".
      callback(voci) riceve ogni cibo aggiunto, uno alla volta. */
   cerca: function (callback) {
     var U = App.Utils, self = this;
-    var categoria = '';
-    var aggiunti = 0;
     var corpo = U.el('<div>' +
       '<input id="c-testo" type="search" placeholder="Cerca un cibo (es. pasta, mela…)" autocomplete="off">' +
-      '<div class="filtri" id="c-filtri" style="margin-top:8px"></div>' +
-      '<div class="card"><ul class="elenco" id="c-elenco"></ul></div>' +
+      '<div class="card" style="margin-top:8px"><ul class="elenco" id="c-elenco"></ul></div>' +
       '<button class="btn btn-contorno btn-pieno" data-az="nuovo">＋ Cibo nuovo in archivio</button>' +
     '</div>');
-    var filtri = corpo.querySelector('#c-filtri');
-    var cats = [{ id: '', nome: 'Tutti', icona: '' }].concat(App.Config.categorie);
-    cats.forEach(function (c) {
-      var chip = U.el('<span class="chip chip-scelta">' + c.icona + ' ' + c.nome + '</span>');
-      chip.onclick = function () { categoria = c.id; disegna(); };
-      chip.setAttribute('data-cat', c.id);
-      filtri.appendChild(chip);
-    });
 
     var scegli = function (a) {
       self.chiediGrammi(a, function (v) {
-        callback([v]); aggiunti++;
-        App.Avvisi.toast(a.nome + ' aggiunto (' + U.dec(v.grammi, 0) + ' g)', 'ok', 1800);
+        callback([v]);
+        App.Avvisi.toast(a.nome + ' aggiunto (' + (v.quantita ? v.quantita + ', ' : '') + U.dec(v.grammi, 0) + ' g)', 'ok', 1800);
       });
     };
 
     var disegna = function () {
-      filtri.querySelectorAll('.chip').forEach(function (ch) { ch.classList.toggle('scelto', ch.getAttribute('data-cat') === categoria); });
       var testo = corpo.querySelector('#c-testo').value;
       var ul = corpo.querySelector('#c-elenco');
       ul.innerHTML = '';
       var lista;
-      if (!testo && !categoria) {
+      if (!testo) {
         lista = App.Alimenti.recenti(14, 12);
-        ul.appendChild(U.el('<li class="tenue"><small>' + (lista.length ? 'Usati di recente' : 'Scrivi il nome o scegli una categoria') + '</small></li>'));
+        ul.appendChild(U.el('<li class="tenue"><small>' + (lista.length ? 'Usati di recente' : 'Scrivi il nome del cibo') + '</small></li>'));
       } else {
-        lista = App.Alimenti.cerca(testo, categoria).slice(0, 60);
+        lista = App.Alimenti.cerca(testo).slice(0, 60);
         if (!lista.length) ul.appendChild(U.el('<li class="tenue">Nessun cibo trovato. Puoi aggiungerlo con il pulsante qui sotto.</li>'));
       }
       lista.forEach(function (a) {
@@ -74,57 +68,109 @@ App.UIPastoCibi = {
     setTimeout(function () { corpo.querySelector('#c-testo').focus(); }, 150);
   },
 
-  // Chiede i grammi di un cibo; callback(voce) se confermato.
+  /* Chiede quanto se ne mangia, con l'unità di misura scelta
+     (grammi, ml, cucchiaio, tazza, piatto, mezzo piatto, numero).
+     callback(voce) se confermato. grammiIniziali: apre già in grammi. */
   chiediGrammi: function (a, callback, grammiIniziali) {
-    var U = App.Utils, UC = App.UIComune;
-    var P = a.porzione;
-    var quantita = '';
-    var corpo = U.el('<div><p><b>' + U.esc(a.nome) + '</b></p><p class="tenue">' + U.dec(a.carb) + ' g carboidrati per 100 g' +
-      (P ? ' · 1 ' + U.esc(P.nome) + ' = ' + U.dec(P.grammi) + ' g' : '') + '</p>' +
-      (P ? '<label>Quante?</label><div class="riga" id="g-porzioni"></div>' : '') +
-      UC.campo('g-grammi', P ? 'Oppure i grammi' : 'Quantità', grammiIniziali, 'g', { classe: 'grande' }) +
-      '<div class="riga" style="margin-top:8px" id="g-rapidi"></div>' +
-      '<p class="centro" id="g-carb" style="font-weight:700;color:var(--primario)"></p></div>');
-    var inp = corpo.querySelector('#g-grammi');
+    var U = App.Utils, UC = App.UIComune, A = App.Alimenti;
+    var m = A.misure(a);
+    var unita = grammiIniziali != null ? 'g' : (m.numero ? 'numero' : (m.piatto ? 'piatto' : 'g'));
+    var corpo = U.el('<div><p><b>' + U.esc(a.nome) + '</b></p><p class="tenue">' + U.dec(a.carb) + ' g carboidrati per 100 g</p>' +
+      '<label>Unità di misura</label><div class="riga" id="q-unita"></div>' +
+      '<label for="q-quante" id="q-etichetta">Quantità</label>' +
+      '<div class="campo-unita"><input id="q-quante" class="grande" inputmode="decimal" autocomplete="off"><span id="q-suffisso"></span></div>' +
+      '<div class="riga" style="margin-top:8px" id="q-rapidi"></div>' +
+      '<div id="q-peso-box" style="margin-top:10px"></div>' +
+      '<p class="centro" id="q-risultato" style="font-weight:700;color:var(--primario);margin-top:10px"></p></div>');
+    var inp = corpo.querySelector('#q-quante');
+    if (grammiIniziali != null) inp.value = U.dec(grammiIniziali, 1);
+
+    // Peso della misura scelta: quello salvato o quello scritto qui (che poi si salva).
+    var pesoScritto = function () {
+      var p = corpo.querySelector('#q-peso');
+      return p ? U.numero(p.value) : null;
+    };
+    var pesoUnita = function () {
+      var u = A.unita(unita);
+      if (!u.peso) return 1;
+      var base = pesoScritto();
+      return base ? base * (u.fattore || 1) : null;
+    };
+    var calcola = function () {
+      var q = U.numero(inp.value), p = pesoUnita();
+      return (q && p) ? Math.round(q * p * 10) / 10 : null;
+    };
     var aggiorna = function () {
-      var g = U.numero(inp.value);
-      corpo.querySelector('#g-carb').textContent = g ? '= ' + U.dec(App.Nutrienti.per(a, g).carb) + ' g di carboidrati' : '';
+      var g = calcola(), q = U.numero(inp.value);
+      var r = corpo.querySelector('#q-risultato');
+      if (!q) { r.textContent = ''; return; }
+      if (g == null) { r.textContent = 'Scrivi il peso qui sopra per calcolare i grammi.'; return; }
+      r.textContent = (unita === 'g' ? '' : '= ' + U.dec(g) + ' g · ') + U.dec(App.Nutrienti.per(a, g).carb) + ' g di carboidrati';
     };
-    [30, 50, 80, 100, 150, 200].forEach(function (g) {
-      var b = U.el('<span class="chip chip-scelta">' + g + ' g</span>');
-      b.onclick = function () { inp.value = g; quantita = ''; aggiorna(); };
-      corpo.querySelector('#g-rapidi').appendChild(b);
-    });
-    // Porzioni casalinghe: tazze, bicchieri, cucchiai… anche a mezze; uova, biscotti, frutti interi.
-    if (P) {
-      var aMezze = /^(tazz|bicchier|cucchia|vasett|pizz|bottigli|lattin|pacchett|mozzarell)/.test(P.nome);
-      var scelte = aMezze ? [0.5, 1, 1.5, 2, 3] : (P.grammi <= 15 ? [1, 2, 3, 4, 5, 6, 8, 10] : [1, 2, 3, 4, 5, 6]);
-      scelte.forEach(function (n) {
-        var b = U.el('<span class="chip chip-scelta">' + U.esc(App.Alimenti.testoPorzione(P, n)) + '</span>');
-        b.onclick = function () {
-          corpo.querySelectorAll('#g-porzioni .chip-scelta').forEach(function (x) { x.classList.toggle('scelto', x === b); });
-          inp.value = U.dec(n * P.grammi, 1);
-          quantita = App.Alimenti.testoPorzione(P, n);
-          aggiorna();
-        };
-        corpo.querySelector('#g-porzioni').appendChild(b);
+
+    var disegnaUnita = function () {
+      var u = A.unita(unita), nomi = A.nomiUnita(a, unita);
+      corpo.querySelectorAll('#q-unita .chip-scelta').forEach(function (x) { x.classList.toggle('scelto', x.getAttribute('data-u') === unita); });
+      corpo.querySelector('#q-suffisso').textContent = unita === 'g' ? 'g' : unita === 'ml' ? 'ml' : nomi.molti;
+      corpo.querySelector('#q-etichetta').textContent = unita === 'g' ? 'Grammi' : unita === 'ml' ? 'Millilitri' : 'Quanti?';
+      // Pulsanti rapidi
+      var box = corpo.querySelector('#q-rapidi');
+      box.innerHTML = '';
+      var rapidi = (unita === 'numero' && m.numero && m.numero <= 15) ? [1, 2, 3, 4, 5, 6, 8, 10] : u.rapidi;
+      rapidi.forEach(function (n) {
+        var etich = unita === 'g' ? n + ' g' : unita === 'ml' ? n + ' ml' : A.testoQuantita(a, unita, n);
+        var b = U.el('<span class="chip chip-scelta">' + U.esc(etich) + '</span>');
+        b.onclick = function () { inp.value = U.dec(n, 2); aggiorna(); };
+        box.appendChild(b);
       });
-    }
-    inp.addEventListener('input', function () {
-      quantita = '';
-      corpo.querySelectorAll('#g-porzioni .chip-scelta').forEach(function (x) { x.classList.remove('scelto'); });
+      // Peso della misura
+      var pb = corpo.querySelector('#q-peso-box');
+      pb.innerHTML = '';
+      if (u.peso) {
+        var nomeBase = u.peso === 'numero' ? (m.numeroNome || 'pezzo') : u.peso;
+        var valore = m[u.peso];
+        pb.appendChild(U.el('<div>' + UC.campo('q-peso', 'Peso di 1 ' + nomeBase + (u.fattore ? ' intero' : ''), valore, 'g',
+          { aiuto: valore ? 'Valore indicativo: se lo cambi, l\'app ricorda il nuovo peso per questo cibo.'
+                          : 'Non ancora indicato per questo cibo: scrivilo una volta e l\'app lo ricorderà.' }) + '</div>'));
+        pb.querySelector('#q-peso').addEventListener('input', aggiorna);
+      }
+      if (unita === 'ml') pb.appendChild(U.el('<p class="aiuto">1 ml conta come 1 g: va bene per latte, succhi e bevande.</p>'));
       aggiorna();
-    });
-    var conferma = function (f) {
-      var g = U.numero(inp.value);
-      var e = App.Sicurezza.grammi(g);
-      if (e) { UC.errore(f.corpo, '#g-grammi', e); return false; }
-      callback(App.Nutrienti.voce(a, g, quantita));
     };
-    var fin = App.Avvisi.finestra({ titolo: 'Quanti grammi?', icona: '⚖️', classe: 'piccola', contenuto: corpo,
+
+    App.Config.unitaMisura.forEach(function (u) {
+      var etich = u.id === 'numero' && m.numeroNome ? 'numero (' + (m.numeroPlurale || m.numeroNome) + ')' : u.nome;
+      var chip = U.el('<span class="chip chip-scelta" data-u="' + u.id + '">' + U.esc(etich) + '</span>');
+      chip.onclick = function () {
+        if (unita === chip.getAttribute('data-u')) return;
+        unita = chip.getAttribute('data-u'); inp.value = ''; disegnaUnita(); inp.focus();
+      };
+      corpo.querySelector('#q-unita').appendChild(chip);
+    });
+    inp.addEventListener('input', aggiorna);
+
+    var conferma = function (f) {
+      var q = U.numero(inp.value);
+      if (!q || q <= 0) { UC.errore(f.corpo, '#q-quante', 'Scrivi la quantità.'); return false; }
+      var u = A.unita(unita), cibo = a;
+      if (u.peso) {
+        var peso = pesoScritto();
+        if (!peso) { UC.errore(f.corpo, '#q-peso', 'Scrivi quanto pesa 1 ' + (u.peso === 'numero' ? (m.numeroNome || 'pezzo') : u.peso) + ' di questo cibo.'); return false; }
+        if (peso !== m[u.peso]) {
+          var r = A.salvaPeso(a, u.peso, peso);
+          if (r.errore) { UC.errore(f.corpo, '#q-peso', r.errore); return false; }
+          cibo = r.alimento;
+        }
+      }
+      var g = calcola();
+      var e = App.Sicurezza.grammi(g);
+      if (e) { UC.errore(f.corpo, '#q-quante', e); return false; }
+      callback(App.Nutrienti.voce(cibo, g, A.testoQuantita(cibo, unita, q)));
+    };
+    var fin = App.Avvisi.finestra({ titolo: 'Quanto ne mangi?', icona: '⚖️', classe: 'piccola', contenuto: corpo,
       pulsanti: [{ testo: 'Annulla', classe: 'btn-neutro' }, { testo: '＋ Aggiungi', classe: 'btn-verde', azione: conferma }] });
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && conferma(fin) !== false) fin.chiudi(); });
-    aggiorna();
+    disegnaUnita();
     setTimeout(function () { inp.focus(); }, 150);
   },
 

@@ -8,7 +8,7 @@ window.App = window.App || {};
 
 App.Config = {
   nome: 'DiabEat',
-  versione: '1.3',
+  versione: '1.4',
   // Nome dello spazio di salvataggio: deve essere diverso per ogni app.
   // NON cambiarlo: è quello della prima versione, cambiarlo farebbe sparire i dati salvati.
   nomeArchivio: 'diario-insulina-gc',
@@ -23,15 +23,17 @@ App.Config = {
     { id: 'spuntinoNotte',      nome: 'Spuntino prenanna',  icona: '🌙', ora: '23:00' }
   ],
 
-  // Categorie dell'archivio cibi. L'ordine è la priorità nella ricerca:
-  // i primi vengono per primi.
-  categorie: [
-    { id: 'primo',     nome: 'Primi',     icona: '🍝' },
-    { id: 'secondo',   nome: 'Secondi',   icona: '🍗' },
-    { id: 'contorno',  nome: 'Contorni',  icona: '🥗' },
-    { id: 'antipasto', nome: 'Antipasti', icona: '🧀' },
-    { id: 'dolce',     nome: 'Dolci',     icona: '🍰' },
-    { id: 'altro',     nome: 'Altro', icona: '🥖', descrizione: 'pane, frutta, colazione, bevande, condimenti' }
+  // Unità di misura per la quantità di un cibo. 'peso' = di quale misura del cibo
+  // si usa il peso (vedi catalogo/porzioni.js); 'fattore' = quante volte quel peso.
+  // grammi e ml non hanno bisogno di pesi (1 ml conta come 1 g: va bene per acqua, latte, succhi).
+  unitaMisura: [
+    { id: 'g',           nome: 'grammi',       uno: 'g',            molti: 'g',            rapidi: [30, 50, 80, 100, 150, 200] },
+    { id: 'ml',          nome: 'ml',           uno: 'ml',           molti: 'ml',           rapidi: [50, 100, 150, 200, 250, 330] },
+    { id: 'cucchiaio',   nome: 'cucchiaio',    uno: 'cucchiaio',    molti: 'cucchiai',     rapidi: [1, 2, 3, 4], peso: 'cucchiaio' },
+    { id: 'tazza',       nome: 'tazza',        uno: 'tazza',        molti: 'tazze',        rapidi: [0.5, 1, 1.5, 2], peso: 'tazza' },
+    { id: 'piatto',      nome: 'piatto',       uno: 'piatto',       molti: 'piatti',       rapidi: [1, 1.5, 2], peso: 'piatto' },
+    { id: 'mezzoPiatto', nome: 'mezzo piatto', uno: 'mezzo piatto', molti: 'mezzi piatti', rapidi: [1], peso: 'piatto', fattore: 0.5 },
+    { id: 'numero',      nome: 'numero',       uno: 'pezzo',        molti: 'pezzi',        rapidi: [1, 2, 3, 4, 5, 6], peso: 'numero' }
   ],
 
   // Attività della giornata: si registrano con ora, durata e intensità.
@@ -116,6 +118,7 @@ App.Config = {
                 'In alternativa puoi scrivere, o usare il microfono della tastiera, nel campo di testo.',
     avvisoCatalogo: 'Catalogo iniziale: valori medi per 100 g, indicativi, basati sulle tabelle di composizione ' +
                     'degli alimenti (CREA) e sulle etichette più comuni. Il "cotto" vale per cotture senza condimento. ' +
+                    'Anche i pesi di cucchiaio, tazza, piatto e pezzo sono indicativi. ' +
                     'Controlla i cibi che usi più spesso: ogni valore si può correggere. Per i prodotti confezionati ' +
                     'vale sempre l\'etichetta (usa il codice a barre).'
   }

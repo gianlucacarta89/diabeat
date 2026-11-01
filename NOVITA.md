@@ -1,5 +1,13 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.4 — 01/11/2026
+- **Niente più categorie** dei cibi: un unico elenco, ordinato per pertinenza nella ricerca e alfabetico nell'archivio.
+- **Unità di misura** per la quantità: grammi, ml, cucchiaio, tazza, piatto, mezzo piatto, numero (pezzi). Ogni cibo ha i suoi pesi (es. 1 piatto di pasta cotta = 230 g, 1 cucchiaio d'olio = 10 g, 1 uovo = 55 g). Se un peso manca, l'app lo chiede una volta e lo ricorda; se lo cambi, ricorda il nuovo.
+- **Voce:** capisce anche "un piatto di pasta", "mezzo piatto di riso", "2 cucchiai di olio", "200 ml di latte".
+- I cibi salvati con la v1.3 (unità casalinga) vengono convertiti da soli.
+
+File: js/config.js, js/catalogo/porzioni.js, js/servizi/alimenti.js, js/servizi/nutrienti.js, js/servizi/voce-testo.js, js/ui/ui-pasto-cibi.js, js/ui/ui-archivio.js, js/ui/ui-alimento-form.js, js/ui/ui-scanner.js, js/ui/ui-voce.js, sw.js, MAPPA.md, LEGGIMI.txt.
+
 ## v1.3 — 31/10/2026
 - **Porzioni casalinghe:** molti cibi hanno un'unità (1 uovo = 55 g, 1 tazza di latte = 200 g, 1 biscotto secco = 6 g…). Scegliendo il cibo compaiono i pulsanti "1 uovo, 2 uova…" o "½ tazza, 1 tazza, 1½ tazze…", e nel pasto si vede "2 uova · 110 g". Pesi indicativi, modificabili per ogni cibo (anche quelli nuovi).
 - **Voce:** capisce "2 uova", "una tazza e mezza di latte", "mezza tazza di corn flakes", "3 biscotti", "una fetta di pane" e calcola i grammi.
