@@ -87,6 +87,14 @@ App.UIImpostazioni = {
     };
     c.appendChild(cardDati);
 
+    // --- Aggiornamento dell'app ---
+    var cardAgg = U.el('<div class="card"><h2>🔄 Versione dell\'app</h2>' +
+      '<p class="tenue">Stai usando <b>' + U.esc(App.Config.nome) + ' v' + U.esc(App.Config.versione) + '</b>. ' +
+      'Con internet l\'app si aggiorna da sola; se pensi di avere una versione vecchia, usa questo pulsante. I tuoi dati non si toccano.</p>' +
+      '<button class="btn btn-blu btn-pieno">🔄 Aggiorna app</button></div>');
+    cardAgg.querySelector('button').onclick = function () { App.aggiornaApp(); };
+    c.appendChild(cardAgg);
+
     // --- Voce ---
     if (imp.vocaleOk) {
       var cardV = U.el('<div class="card"><h2>🎤 Riconoscimento vocale</h2><p class="tenue">Hai dato l\'ok all\'uso della voce.</p>' +

@@ -1,12 +1,14 @@
 /* ============================================================
    sw.js — service worker: copia i file dell'app sul telefono
    così l'app si apre anche senza internet.
-   A ogni nuova versione cambia VERSIONE: il telefono scarica i
-   file nuovi e cancella la copia vecchia. I DATI non si toccano
+   Dalla v1.8 "prima la rete": con internet prende sempre i file
+   aggiornati dal sito (e rinnova la copia); senza internet, o se
+   la rete non risponde entro 4 secondi, usa la copia sul telefono.
+   Così gli aggiornamenti si vedono subito. I DATI non si toccano
    (stanno in IndexedDB, non qui).
    Le richieste verso altri siti (Open Food Facts) passano sempre da internet.
    ============================================================ */
-var VERSIONE = 'diabeat-v1.7';
+var VERSIONE = 'diabeat-v1.8';
 var FILE = [
   'index.html',
   'manifest.webmanifest',
@@ -80,7 +82,22 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   var url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(function (r) {
-    return r || fetch(e.request);
-  }));
+  var dallaCopia = function () {
+    return caches.match(e.request, { ignoreSearch: true }).then(function (r) {
+      // Apertura dell'app (es. ./?app=diabeat): la pagina principale.
+      return r || (e.request.mode === 'navigate' ? caches.match('index.html') : undefined);
+    });
+  };
+  var dallaRete = fetch(e.request, { cache: 'no-cache' }).then(function (risposta) {
+    if (risposta && risposta.ok) {
+      var copia = risposta.clone();
+      caches.open(VERSIONE).then(function (c) { c.put(e.request, copia); });
+    }
+    return risposta;
+  });
+  var attesa = new Promise(function (ok) { setTimeout(ok, 4000); }).then(dallaCopia);
+  e.respondWith(
+    Promise.race([dallaRete, attesa]).then(function (r) { return r || dallaRete; })
+      .catch(function () { return dallaCopia().then(function (r) { return r || Response.error(); }); })
+  );
 });

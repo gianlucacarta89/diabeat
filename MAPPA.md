@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.7
+# MAPPA — DiabEat v1.8
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -7,7 +7,7 @@ Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello
 |---|---|
 | `index.html` | Scheletro della pagina e ordine di caricamento: librerie → config → core → catalogo → servizi → stampa → dati → ui → avvio |
 | `manifest.webmanifest` | Nome, icona, colori per "Aggiungi a schermata Home" |
-| `sw.js` | Copia offline dei file. **A ogni versione cambia `VERSIONE` e, se aggiungi file, la lista `FILE`** |
+| `sw.js` | Copia offline dei file, **prima la rete** (con internet file sempre aggiornati, senza internet la copia). **A ogni versione cambia `VERSIONE` e, se aggiungi file, la lista `FILE`** |
 | `icone/` | Icona 192 e 512 px |
 | `lib/` | jsPDF 2.5.1, jsPDF-AutoTable 3.8.2, html5-qrcode 2.3.8 (in locale) |
 
@@ -75,12 +75,12 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `ui-archivio.js` | scheda **Archivio** → Cibi (ricerca, modifica, elimina, ripristina) |
 | `ui-modelli.js` | scheda **Archivio** → Modelli di pasto |
 | `ui-statistiche.js` | scheda **Statistiche**; `cardReport` (report per la diabetologa: 7/14/30 giorni, nome, scarica/invia) |
-| `ui-impostazioni.js` | scheda **Impostazioni**: Rapporto I/C, Insulina rapida, Sicurezza, Attività, Dati e backup, Cancella diario, voce |
+| `ui-impostazioni.js` | scheda **Impostazioni**: Rapporto I/C, Insulina rapida, Sicurezza, Attività, Dati e backup, Cancella diario, **Versione / Aggiorna app**, voce |
 | `ui-parametri.js` | Impostazioni → **Rapporto insulina/carboidrati** (+ storico) |
 | `ui-attivita-umori.js` | Impostazioni → **Le tue attività** (solo nomi; il nome del file è quello della v1.0) |
 
 ## js/avvio.js
-Sempre l'ultimo: apre l'archivio, carica i dati, disegna, registra `sw.js` solo se aperta da https e ricarica la pagina quando è pronta una versione nuova.
+Sempre l'ultimo: apre l'archivio, carica i dati, disegna, registra `sw.js` solo se aperta da https e ricarica la pagina quando è pronta una versione nuova; `App.aggiornaApp` (pulsante 🔄 Aggiorna app in Impostazioni).
 
 ## Dati salvati (chiavi dell'archivio)
 `impostazioni`, `alimenti` (personali e correzioni del catalogo), `modelli` → permanenti.

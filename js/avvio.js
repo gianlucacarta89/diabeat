@@ -41,4 +41,20 @@ App.avvia = function () {
   }
 };
 
+// Pulsante "Aggiorna app" (Impostazioni): cancella la copia dei file sul telefono
+// (non i dati, che stanno in IndexedDB) e ricarica l'app dal sito.
+App.aggiornaApp = function () {
+  if (navigator.onLine === false) { App.Avvisi.toast('Sei offline: collegati a internet e riprova.', 'avviso'); return; }
+  App.Avvisi.toast('Aggiorno l\'app…', 'info', 3000);
+  var fatto = function () { location.reload(); };
+  var passi = [];
+  if (window.caches) passi.push(caches.keys().then(function (k) { return Promise.all(k.map(function (n) { return caches.delete(n); })); }));
+  if ('serviceWorker' in navigator) {
+    passi.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+      return Promise.all(regs.map(function (r) { return r.update().catch(function () {}); }));
+    }));
+  }
+  Promise.all(passi).then(fatto, fatto);
+};
+
 document.addEventListener('DOMContentLoaded', App.avvia);

@@ -1,5 +1,11 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.8 — 01/11/2026
+- **Aggiornamenti sicuri:** con internet l'app prende sempre i file nuovi dal sito ("prima la rete"); senza internet usa la copia sul telefono. Prima il telefono poteva restare su una versione vecchia.
+- **Impostazioni → 🔄 Aggiorna app:** mostra la versione in uso e forza l'aggiornamento (i dati non si toccano).
+
+File: sw.js, js/avvio.js, js/ui/ui-impostazioni.js, js/config.js, MAPPA.md.
+
 ## v1.7 — 01/11/2026
 - **Prodotti in commercio per nome e marca:** nella ricerca dei cibi, il pulsante "🌐 Cerca … tra i prodotti in commercio" (o Invio sulla tastiera) cerca su Open Food Facts i prodotti venduti in Italia, es. "gnocchi patarò", "oro saiwa". Toccandone uno viene salvato nel tuo archivio (con la porzione della confezione) e si sceglie la quantità. Serve internet; Open Food Facts permette circa 10 ricerche al minuto.
 
