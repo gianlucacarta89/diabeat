@@ -45,14 +45,15 @@ App.UIScanner = {
       App.OpenFoodFacts.cerca(codice).then(function (r) {
         if (chiuso) return;
         fin.chiudi();
+        if (r.trovato && !r.nome) r.nome = 'Prodotto ' + codice;
         var dati = {
-          nome: r.nome || ('Prodotto ' + codice), carb: r.carb, prot: r.prot, grassi: r.grassi,
+          nome: r.nome || '', carb: r.carb, prot: r.prot, grassi: r.grassi,
           codice: App.OpenFoodFacts.codiceValido(codice) ? codice : '', fonte: r.trovato ? 'Open Food Facts' : 'Etichetta',
           misure: (r.porzione && r.porzione >= 1) ? { numero: r.porzione, numeroNome: 'porzione', numeroPlurale: 'porzioni' } : null
         };
         // Trovato con tutti i valori: si salva subito in archivio, senza passaggi in più.
-        if (r.trovato) {
-          var salvato = App.Alimenti.salva(dati);
+        if (r.trovato && App.OpenFoodFacts.completo(r)) {
+          var salvato = App.OpenFoodFacts.salvaInArchivio(r);
           if (salvato.alimento) {
             App.Avvisi.toast('Salvato in archivio: ' + salvato.alimento.nome + '. Valori da Open Food Facts: se qualcosa non torna con l\'etichetta, correggilo in Archivio.', 'ok', 6000);
             callback(salvato.alimento);

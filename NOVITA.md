@@ -1,5 +1,10 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.7 — 01/11/2026
+- **Prodotti in commercio per nome e marca:** nella ricerca dei cibi, il pulsante "🌐 Cerca … tra i prodotti in commercio" (o Invio sulla tastiera) cerca su Open Food Facts i prodotti venduti in Italia, es. "gnocchi patarò", "oro saiwa". Toccandone uno viene salvato nel tuo archivio (con la porzione della confezione) e si sceglie la quantità. Serve internet; Open Food Facts permette circa 10 ricerche al minuto.
+
+File: js/servizi/open-food-facts.js, js/ui/ui-pasto-cibi.js, js/ui/ui-scanner.js, js/config.js, sw.js, MAPPA.md.
+
 ## v1.6 — 01/11/2026
 - **Report per la diabetologa** (Statistiche, in fondo): periodo a scelta 7, 14 o 30 giorni; il PDF ora riporta per ogni pasto **glicemia, cibi con quantità e grammi, carboidrati e unità di insulina fatte** (con la dose suggerita se diversa), più boli extra, ipoglicemie, attività, stato d'animo e note.
 - **Nome sul report** (facoltativo), salvato per le volte successive.

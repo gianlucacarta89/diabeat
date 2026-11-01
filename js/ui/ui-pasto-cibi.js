@@ -1,10 +1,11 @@
 /* ============================================================
    ui/ui-pasto-cibi.js
-   Scelta dei cibi: ricerca nell'archivio (con i cibi recenti),
+   Scelta dei cibi: ricerca nell'archivio (con i cibi recenti) e tra
+   i prodotti in commercio (Open Food Facts, su richiesta),
    quantità con l'unità di misura (grammi, ml, cucchiaio, tazza,
    piatto, mezzo piatto, numero), scelta di un modello di pasto.
    Dipende da: App.Alimenti, App.Modelli, App.Nutrienti, App.Sicurezza,
-               App.UIComune, App.UIAlimentoForm, App.Avvisi, App.Config, App.Utils.
+               App.UIComune, App.UIAlimentoForm, App.OpenFoodFacts, App.Avvisi, App.Config, App.Utils.
    Usato da: ui/ui-pasto.js, ui/ui-modelli.js.
    ============================================================ */
 window.App = window.App || {};
@@ -27,7 +28,8 @@ App.UIPastoCibi = {
   cerca: function (callback) {
     var U = App.Utils, self = this;
     var corpo = U.el('<div>' +
-      '<input id="c-testo" type="search" placeholder="Cerca un cibo (es. pasta, mela…)" autocomplete="off">' +
+      '<input id="c-testo" type="search" enterkeyhint="search" placeholder="Cerca un cibo o un prodotto (es. pasta, oro saiwa)" autocomplete="off">' +
+      '<div id="c-online"></div>' +
       '<div class="card" style="margin-top:8px"><ul class="elenco" id="c-elenco"></ul></div>' +
       '<button class="btn btn-contorno btn-pieno" data-az="nuovo">＋ Cibo nuovo in archivio</button>' +
     '</div>');
@@ -38,10 +40,50 @@ App.UIPastoCibi = {
     };
     var scegli = function (a, ultima) { self.chiediGrammi(a, aggiunto, null, ultima); };
 
+    // Prodotti in commercio (Open Food Facts): solo su richiesta, perché il servizio limita le ricerche.
+    var online = corpo.querySelector('#c-online');
+    var pulsanteOnline = function (testo) {
+      online.innerHTML = '';
+      if (testo.trim().length < 3) return;
+      var b = U.el('<button class="btn btn-contorno btn-pieno" style="margin-top:8px">🌐 Cerca «' + U.esc(testo.trim()) + '» tra i prodotti in commercio</button>');
+      b.onclick = function () { cercaOnline(testo.trim()); };
+      online.appendChild(b);
+    };
+    var cercaOnline = function (testo) {
+      online.innerHTML = '<p class="tenue centro" style="margin:10px 0">🌐 Cerco «' + U.esc(testo) + '» su Open Food Facts…</p>';
+      App.OpenFoodFacts.cercaNome(testo).then(function (r) {
+        if (corpo.querySelector('#c-testo').value.trim() !== testo) return; // nel frattempo hai cambiato ricerca
+        online.innerHTML = '';
+        var card = U.el('<div class="card" style="margin-top:8px;border:2px solid var(--primario-chiaro)"><ul class="elenco"></ul></div>');
+        var ul = card.querySelector('ul');
+        ul.appendChild(U.el('<li class="tenue"><small>' + (r.errore ? U.esc(r.errore)
+          : r.prodotti.length ? '🌐 Prodotti in commercio (Open Food Facts): toccandone uno lo salvi nel tuo archivio'
+          : 'Nessun prodotto trovato con i valori nutrizionali completi. Prova con meno parole (es. solo marca e tipo) o usa il codice a barre.') + '</small></li>'));
+        r.prodotti.forEach(function (p) {
+          var gia = p.codice && App.Alimenti.perCodice(p.codice);
+          var li = U.el('<li class="card-cliccabile"><div class="nome">' + U.esc(p.nome) + '<small>' + U.dec(p.carb) + ' g CHO · ' +
+            U.dec(p.prot) + ' P · ' + U.dec(p.grassi) + ' G per 100 g' + (p.porzione ? ' · porzione ' + U.dec(p.porzione) + ' g' : '') +
+            (gia ? ' · già in archivio' : '') + '</small></div><span class="chip">＋</span></li>');
+          li.onclick = function () {
+            var s = App.OpenFoodFacts.salvaInArchivio(p);
+            if (s.errore) { App.Avvisi.toast(s.errore, 'errore', 5000); return; }
+            if (s.nuovo) App.Avvisi.toast('Salvato in archivio: ' + s.alimento.nome, 'ok', 2500);
+            scegli(s.alimento);
+          };
+          ul.appendChild(li);
+        });
+        var altra = U.el('<button class="btn btn-piccolo btn-neutro btn-pieno" style="margin-top:6px">Chiudi i prodotti in commercio</button>');
+        altra.onclick = function () { pulsanteOnline(testo); };
+        online.appendChild(card);
+        online.appendChild(altra);
+      });
+    };
+
     var disegna = function () {
       var testo = corpo.querySelector('#c-testo').value;
       var ul = corpo.querySelector('#c-elenco');
       ul.innerHTML = '';
+      pulsanteOnline(testo);
       var lista;
       if (!testo) {
         // I 20 cibi inseriti più di recente: "＋" li aggiunge subito con la quantità dell'ultima volta.
@@ -64,7 +106,8 @@ App.UIPastoCibi = {
         return;
       } else {
         lista = App.Alimenti.cerca(testo).slice(0, 60);
-        if (!lista.length) ul.appendChild(U.el('<li class="tenue">Nessun cibo trovato. Puoi aggiungerlo con il pulsante qui sotto.</li>'));
+        ul.appendChild(U.el('<li class="tenue"><small>' + (lista.length ? 'Nel tuo archivio'
+          : 'Nessun cibo nel tuo archivio: cerca tra i prodotti in commercio qui sopra, o aggiungilo a mano qui sotto.') + '</small></li>'));
       }
       lista.forEach(function (a) {
         var li = U.el('<li class="card-cliccabile">' + self.rigaAlimento(a) + '<span class="chip">＋</span></li>');
@@ -73,6 +116,11 @@ App.UIPastoCibi = {
       });
     };
     corpo.querySelector('#c-testo').addEventListener('input', disegna);
+    // Invio sulla tastiera = cerca tra i prodotti in commercio.
+    corpo.querySelector('#c-testo').addEventListener('keydown', function (e) {
+      var t = e.target.value.trim();
+      if (e.key === 'Enter' && t.length >= 3) { e.preventDefault(); cercaOnline(t); }
+    });
     corpo.querySelector('[data-az=nuovo]').onclick = function () {
       App.UIAlimentoForm.apri({ nome: corpo.querySelector('#c-testo').value }, function (a) { disegna(); scegli(a); });
     };
