@@ -2,8 +2,8 @@
    ui/ui-statistiche.js
    Scheda "Statistiche": riepilogo di un periodo (7, 14, 30, 90
    giorni), glicemie per pasto, per stato d'animo e nei giorni con attività,
-   e PDF per il diabetologo.
-   Dipende da: App.Statistiche, App.StampaReport, App.Stato, App.UIComune,
+   e PDF per la diabetologa (7, 14 o 30 giorni, da scaricare o inviare).
+   Dipende da: App.Statistiche, App.StampaReport, App.StampaBase, App.Stato, App.UIComune,
                App.Config, App.Nav, App.Utils.
    Usato da: ui/navigazione.js.
    ============================================================ */
@@ -11,6 +11,47 @@ window.App = window.App || {};
 
 App.UIStatistiche = {
   giorni: 14,
+
+  giorniReport: 14,
+
+  // Riquadro del PDF per la diabetologa: periodo 7/14/30 giorni, nome sul report, scarica o invia.
+  cardReport: function () {
+    var U = App.Utils, self = this, imp = App.Stato.imp();
+    var card = U.el('<div class="card" id="card-report"><b>📄 Report per la diabetologa</b>' +
+      '<p class="tenue">PDF con glicemie, cibi di ogni pasto (con quantità e carboidrati) e unità di insulina fatte, giorno per giorno, più il riepilogo del periodo.</p>' +
+      '<label>Periodo</label><div class="schede" id="r-periodo"></div>' +
+      '<label for="r-nome">Nome sul report (facoltativo)</label><input id="r-nome" placeholder="es. Mario Rossi" value="' + U.esc(imp.nomeReport || '') + '">' +
+      '<div class="griglia-2" style="margin-top:12px">' +
+        '<button class="btn btn-viola" data-az="scarica">📄 Scarica PDF</button>' +
+        '<button class="btn btn-viola" data-az="invia">📤 Invia</button>' +
+      '</div><p class="aiuto" id="r-periodo-testo"></p></div>');
+    var periodo = function () {
+      var a = U.oggi();
+      return { da: U.aggiungiGiorni(a, -(self.giorniReport - 1)), a: a };
+    };
+    var aggiornaTesto = function () {
+      var p = periodo();
+      card.querySelector('#r-periodo-testo').textContent = 'Dal ' + U.formattaData(p.da) + ' al ' + U.formattaData(p.a) + ' (oggi compreso).';
+    };
+    [7, 14, 30].forEach(function (n) {
+      var b = U.el('<button>' + n + ' giorni</button>');
+      b.classList.toggle('attivo', self.giorniReport === n);
+      b.onclick = function () {
+        self.giorniReport = n;
+        card.querySelectorAll('#r-periodo button').forEach(function (x) { x.classList.toggle('attivo', x === b); });
+        aggiornaTesto();
+      };
+      card.querySelector('#r-periodo').appendChild(b);
+    });
+    card.querySelector('#r-nome').onchange = function (e) { imp.nomeReport = e.target.value.trim(); App.Stato.salva('impostazioni'); };
+    card.querySelector('[data-az=scarica]').onclick = function () { var p = periodo(); App.StampaReport.crea(p.da, p.a); };
+    var invia = card.querySelector('[data-az=invia]');
+    if (App.StampaBase.puoCondividere()) invia.onclick = function () { var p = periodo(); App.StampaReport.crea(p.da, p.a, 'invia'); };
+    else invia.remove();
+    if (!invia.isConnected) card.querySelector('.griglia-2').style.gridTemplateColumns = '1fr';
+    aggiornaTesto();
+    return card;
+  },
 
   disegna: function (c) {
     var U = App.Utils, UC = App.UIComune, self = this;
@@ -70,9 +111,6 @@ App.UIStatistiche = {
       }), 'Media di tutte le glicemie dei giorni in cui hai registrato l\'attività.');
     }
 
-    var pdf = U.el('<div class="card"><b>📄 Report per il diabetologo</b><p class="tenue">PDF con il riepilogo del periodo scelto, i parametri e il diario giorno per giorno.</p>' +
-      '<button class="btn btn-viola btn-pieno">📄 Scarica PDF (' + this.giorni + ' giorni)</button></div>');
-    pdf.querySelector('button').onclick = function () { App.StampaReport.crea(da, a); };
-    c.appendChild(pdf);
+    c.appendChild(this.cardReport());
   }
 };

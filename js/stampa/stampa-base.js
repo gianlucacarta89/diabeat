@@ -29,11 +29,12 @@ App.StampaBase = {
       .replace(/\u2192/g, '->')
       .replace(/\u00f7/g, ':');
     // Lettere accentate dell'italiano: restano (sono nel set del PDF); le altre si semplificano.
-    s = s.replace(/[^\x20-\x7E\u00c0-\u00ff]/g, function (ch) {
+    // Gli a capo (\n) restano: servono per andare a riga nelle celle.
+    s = s.replace(/[^\n\x20-\x7E\u00c0-\u00ff]/g, function (ch) {
       var n = ch.normalize ? ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
       return /^[\x20-\x7E]$/.test(n) ? n : '';
     });
-    return s.replace(/\s{2,}/g, ' ').trim();
+    return s.split('\n').map(function (r) { return r.replace(/[ \t]{2,}/g, ' ').trim(); }).join('\n').trim();
   },
 
   nuovo: function () {
@@ -94,6 +95,23 @@ App.StampaBase = {
       doc.setFontSize(7.5); doc.setTextColor(120, 120, 120);
       doc.text(this.pulisci(App.Config.nome + ' v' + App.Config.versione + ' - pagina ' + i + ' di ' + n), 12, 291);
     }
+  },
+
+  // La condivisione dei file (WhatsApp, email, Drive...) funziona su molti telefoni, non su tutti i computer.
+  puoCondividere: function () {
+    try {
+      return !!(navigator.canShare && window.File &&
+        navigator.canShare({ files: [new File(['x'], 'prova.pdf', { type: 'application/pdf' })] }));
+    } catch (e) { return false; }
+  },
+
+  // Apre il menu "Condividi" del telefono con il PDF; se non si pu\u00f2, lo scarica.
+  condividi: function (doc, nomeFile, titolo) {
+    this.pie(doc);
+    var file = new File([doc.output('blob')], nomeFile, { type: 'application/pdf' });
+    if (!this.puoCondividere()) { doc.save(nomeFile); App.Avvisi.toast('Condivisione non disponibile: PDF scaricato.', 'info'); return; }
+    navigator.share({ files: [file], title: this.pulisci(titolo || nomeFile) })
+      .catch(function (e) { if (e && e.name !== 'AbortError') { doc.save(nomeFile); App.Avvisi.toast('PDF scaricato', 'ok'); } });
   },
 
   salva: function (doc, nomeFile) {

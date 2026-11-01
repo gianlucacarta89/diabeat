@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.5
+# MAPPA — DiabEat v1.6
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -51,8 +51,8 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 ## js/stampa/ (solo ASCII)
 | File | Scopo |
 |---|---|
-| `stampa-base.js` | `pulisci` (filtro caratteri), `intestazione`, `titoloSezione`, `tabella`, `testo`, `salva` (doc.save) |
-| `stampa-report.js` | pulsante **📄 Scarica PDF** in Statistiche → `crea(da, a)` |
+| `stampa-base.js` | `pulisci` (filtro caratteri), `intestazione`, `titoloSezione`, `tabella`, `testo`, `salva` (doc.save), `puoCondividere`, `condividi` (menu Condividi del telefono) |
+| `stampa-report.js` | pulsanti **📄 Scarica PDF** e **📤 Invia** in Statistiche → `crea(da, a, modo)`: riepilogo, parametri, diario con glicemie, cibi, CHO e insulina |
 
 ## js/dati/
 | File | Scopo |
@@ -74,7 +74,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `ui-alimento-form.js` | finestra **Nuovo cibo / Modifica cibo / Controlla il prodotto** (con i pesi delle misure: cucchiaio, tazza, piatto, pezzo) |
 | `ui-archivio.js` | scheda **Archivio** → Cibi (ricerca, modifica, elimina, ripristina) |
 | `ui-modelli.js` | scheda **Archivio** → Modelli di pasto |
-| `ui-statistiche.js` | scheda **Statistiche** |
+| `ui-statistiche.js` | scheda **Statistiche**; `cardReport` (report per la diabetologa: 7/14/30 giorni, nome, scarica/invia) |
 | `ui-impostazioni.js` | scheda **Impostazioni**: Rapporto I/C, Insulina rapida, Sicurezza, Attività, Dati e backup, Cancella diario, voce |
 | `ui-parametri.js` | Impostazioni → **Rapporto insulina/carboidrati** (+ storico) |
 | `ui-attivita-umori.js` | Impostazioni → **Le tue attività** (solo nomi; il nome del file è quello della v1.0) |

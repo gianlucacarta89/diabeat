@@ -6,12 +6,14 @@
    accenti si scrivono come \uXXXX.
    Dipende da: App.StampaBase, App.Statistiche, App.PastoGrasso, App.Nutrienti,
                App.Stato, App.Config, App.UIComune, App.Avvisi, App.Utils.
-   Usato da: ui/ui-statistiche.js (pulsante "Scarica PDF").
+   Usato da: ui/ui-statistiche.js (pulsanti "Scarica PDF" e "Invia").
    ============================================================ */
 window.App = window.App || {};
 
 App.StampaReport = {
-  crea: function (da, a) {
+  /* Crea il PDF del periodo da..a.
+     modo: 'scarica' (default) oppure 'invia' (condivisione del telefono: WhatsApp, email...). */
+  crea: function (da, a, modo) {
     var B = App.StampaBase, U = App.Utils, S = App.Stato, imp = S.imp();
     if (!B.disponibile()) {
       App.Avvisi.toast('Libreria PDF non caricata: ricarica l\'app e riprova.', 'errore', 5000);
@@ -20,7 +22,8 @@ App.StampaReport = {
     var st = App.Statistiche.calcola(da, a);
     var v = function (x, d, u) { return x == null ? '-' : U.dec(x, d) + (u || ''); };
     var doc = B.nuovo();
-    var y = B.intestazione(doc, App.Config.nome + ' - report',
+    var paziente = (imp.nomeReport || '').trim();
+    var y = B.intestazione(doc, App.Config.nome + ' - report' + (paziente ? ' di ' + paziente : ''),
       'Periodo dal ' + U.formattaData(da) + ' al ' + U.formattaData(a) + ' - creato il ' + U.formattaData(U.oggi()));
 
     // Riepilogo
@@ -55,40 +58,48 @@ App.StampaReport = {
 
     // Diario
     doc.addPage(); y = 18;
-    y = B.titoloSezione(doc, y, 'Diario');
+    y = B.titoloSezione(doc, y, 'Diario: glicemie, cibi e insulina');
     var righe = [];
+    var fmtCibo = function (v) {
+      return v.nome + ' ' + (v.quantita ? v.quantita + ' (' + U.dec(v.grammi, 0) + ' g)' : U.dec(v.grammi, 0) + ' g');
+    };
     for (var d = da; d <= a; d = U.aggiungiGiorni(d, 1)) {
       var g = S.giorno(d);
       if (!g) continue;
       var data = U.formattaData(d, true);
       var um = App.UIComune.umore(g.umoreId);
-      if (um) righe.push([data, 'Stato d\'animo', '', '', '', '', '', um.nome]);
+      if (um) righe.push([data, 'Stato d\'animo', '', '', um.nome, '', '']);
       App.Config.pasti.forEach(function (p) {
         var x = g.pasti[p.id];
         if (!x) return;
-        var extra = [], tot = App.Nutrienti.totali(x.voci);
-        if (App.PastoGrasso.livello(tot) === 'alto') extra.push('pasto grasso (' + U.dec(tot.grassi, 0) + ' g grassi)');
-        if (x.note) extra.push(x.note);
-        righe.push([data, p.nome, x.ora, x.glicemia == null ? '-' : String(x.glicemia), U.dec(tot.carb, 0),
-          x.dose == null ? '-' : U.dec(x.dose), x.suggerita == null ? '-' : U.dec(x.suggerita), extra.join('; ')]);
+        var tot = App.Nutrienti.totali(x.voci);
+        var cibi = (x.voci || []).map(fmtCibo).join('\n');
+        if (App.PastoGrasso.livello(tot) === 'alto') cibi += (cibi ? '\n' : '') + '[pasto grasso: ' + U.dec(tot.grassi, 0) + ' g di grassi]';
+        if (x.note) cibi += (cibi ? '\n' : '') + 'Note: ' + x.note;
+        var dose = x.dose == null ? '-' : U.dec(x.dose);
+        if (x.suggerita != null && x.dose != null && x.suggerita !== x.dose) dose += '\n(sugg. ' + U.dec(x.suggerita) + ')';
+        righe.push([data, p.nome, x.ora, x.glicemia == null ? '-' : String(x.glicemia), cibi || '-', U.dec(tot.carb, 0), dose]);
       });
       (g.boliExtra || []).forEach(function (b) {
-        righe.push([data, 'Bolo extra', b.ora, b.glicemia == null ? '-' : String(b.glicemia), '-', U.dec(b.dose), '-', b.note || '']);
+        righe.push([data, 'Bolo extra', b.ora, b.glicemia == null ? '-' : String(b.glicemia), b.note || '', '-', U.dec(b.dose)]);
       });
       (g.ipo || []).forEach(function (x) {
-        righe.push([data, 'IPOGLICEMIA', x.ora, String(x.glicemia), '-', '-', '-', x.trattamento || '']);
+        righe.push([data, 'IPOGLICEMIA', x.ora, String(x.glicemia), x.trattamento ? 'Trattata con: ' + x.trattamento : '', '-', '-']);
       });
       (g.attivita || []).forEach(function (x) {
         var at = App.UIComune.attivita(x.attivitaId);
-        righe.push([data, 'Attivit\u00e0', x.ora, '-', '-', '-', '-', (at ? at.nome : x.attivitaId) + (x.intensita ? ', intensit\u00e0 ' + x.intensita : '') + (x.durataMin ? ', ' + x.durataMin + ' min' : '') + (x.note ? ' - ' + x.note : '')]);
+        righe.push([data, 'Attivit\u00e0', x.ora, '-', (at ? at.nome : x.attivitaId) + (x.intensita ? ', intensit\u00e0 ' + x.intensita : '') +
+          (x.durataMin ? ', ' + x.durataMin + ' min' : '') + (x.note ? ' - ' + x.note : ''), '-', '-']);
       });
-      if (g.note) righe.push([data, 'Note', '', '', '', '', '', g.note]);
+      if (g.note) righe.push([data, 'Note', '', '', g.note, '', '']);
     }
     if (!righe.length) {
       B.testo(doc, y + 4, 'Nessun dato nel periodo.');
     } else {
-      B.tabella(doc, y + 2, ['Data', 'Voce', 'Ora', 'Glic.', 'CHO g', 'Dose U', 'Sugg. U', 'Note'], righe, {
-        columnStyles: { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' }, 6: { halign: 'right' }, 7: { cellWidth: 52 } },
+      B.tabella(doc, y + 2, ['Data', 'Voce', 'Ora', 'Glic. mg/dL', 'Cibi', 'CHO g', 'Insulina U'], righe, {
+        styles: { font: 'helvetica', fontSize: 8, cellPadding: 1.5, overflow: 'linebreak', valign: 'top' },
+        columnStyles: { 0: { cellWidth: 14 }, 1: { cellWidth: 22 }, 2: { cellWidth: 11 }, 3: { cellWidth: 14, halign: 'right' },
+          5: { cellWidth: 12, halign: 'right' }, 6: { cellWidth: 17, halign: 'right' } },
         didParseCell: function (dato) {
           if (dato.section !== 'body') return;
           var voce = dato.row.raw[1];
@@ -100,7 +111,9 @@ App.StampaReport = {
         }
       });
     }
-    B.salva(doc, 'diabeat_' + da + '_' + a + '.pdf');
+    var nomeFile = 'diabeat_' + (paziente ? B.pulisci(paziente).replace(/[^A-Za-z0-9]+/g, '-') + '_' : '') + da + '_' + a + '.pdf';
+    if (modo === 'invia') { B.condividi(doc, nomeFile, 'Report DiabEat dal ' + U.formattaData(da, true) + ' al ' + U.formattaData(a, true)); return; }
+    B.salva(doc, nomeFile);
     App.Avvisi.toast('PDF scaricato', 'ok');
   }
 };
