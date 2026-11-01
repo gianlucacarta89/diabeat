@@ -58,7 +58,13 @@ App.UIPastoCibi = {
         var ul = card.querySelector('ul');
         ul.appendChild(U.el('<li class="tenue"><small>' + (r.errore ? U.esc(r.errore)
           : r.prodotti.length ? '🌐 Prodotti in commercio (Open Food Facts): toccandone uno lo salvi nel tuo archivio'
-          : 'Nessun prodotto trovato con i valori nutrizionali completi. Prova con meno parole (es. solo marca e tipo) o usa il codice a barre.') + '</small></li>'));
+          : 'Nessun prodotto trovato con i valori nutrizionali completi. Prova con meno parole (es. solo marca e tipo) o usa il codice a barre.') +
+          (r.dettagli && !r.prodotti.length ? '<br><span style="opacity:.6">Dettagli: ' + U.esc(r.dettagli) + '</span>' : '') + '</small></li>'));
+        if (r.errore) {
+          var riprova = U.el('<li><button class="btn btn-piccolo btn-contorno btn-pieno">🔄 Riprova</button></li>');
+          riprova.querySelector('button').onclick = function () { cercaOnline(testo); };
+          ul.appendChild(riprova);
+        }
         r.prodotti.forEach(function (p) {
           var gia = p.codice && App.Alimenti.perCodice(p.codice);
           var li = U.el('<li class="card-cliccabile"><div class="nome">' + U.esc(p.nome) + '<small>' + U.dec(p.carb) + ' g CHO · ' +

@@ -27,7 +27,7 @@ App.OpenFoodFacts = {
     var n = p.nutriments || {}, num = this._num;
     var nome = String(p.product_name_it || p.product_name || '').trim();
     var marca = Array.isArray(p.brands) ? p.brands[0] : String(p.brands || '').split(',')[0];
-    marca = String(marca || '').trim();
+    marca = String(marca || '').replace(/^[a-z]{2}:/, '').trim();
     if (marca && nome.toLowerCase().indexOf(marca.toLowerCase()) < 0) nome = (nome ? nome + ' – ' : '') + marca;
     return {
       trovato: true, codice: String(codice || p.code || ''), nome: nome, marca: marca,
@@ -39,9 +39,9 @@ App.OpenFoodFacts = {
 
   completo: function (r) { return r.carb != null && r.prot != null && r.grassi != null && !!r.nome; },
 
-  _fetch: function (url) {
+  _fetch: function (url, ms) {
     var ctrl = window.AbortController ? new AbortController() : null;
-    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 15000);
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, ms || 15000);
     return fetch(url, ctrl ? { signal: ctrl.signal } : {})
       .then(function (r) { clearTimeout(timer); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); },
             function (e) { clearTimeout(timer); throw e; });
@@ -68,35 +68,75 @@ App.OpenFoodFacts = {
       });
   },
 
-  /* Prodotti per nome o marca. Promise<{ prodotti: [...], errore }>
+  /* Prodotti per nome o marca. Promise<{ prodotti: [...], errore, dettagli }>
+     Open Food Facts ha piu' motori di ricerca e nessuno e' sempre affidabile dal telefono:
+     li interroga insieme e usa il primo che risponde con dei prodotti.
+     Se un motore restituisce solo nome e codice, i valori nutrizionali si leggono dalla scheda del prodotto.
      Tiene solo i prodotti con carboidrati, proteine e grassi indicati. */
   cercaNome: function (testo) {
     var C = App.Config.openFoodFacts, self = this;
     testo = String(testo || '').trim();
     if (testo.length < 3) return Promise.resolve({ prodotti: [], errore: 'Scrivi almeno 3 lettere.' });
     if (navigator.onLine === false) return Promise.resolve({ prodotti: [], errore: 'Sei offline: la ricerca dei prodotti in commercio richiede internet.' });
-    var pulisci = function (lista) {
-      var visti = {};
-      return (lista || []).map(function (p) { return self.prodotto(p); })
-        .filter(function (r) {
-          if (!self.completo(r) || visti[r.codice || r.nome]) return false;
-          visti[r.codice || r.nome] = 1;
-          return true;
+    var q = encodeURIComponent(testo), campi = 'code,' + C.campi;
+    var attendi = function (ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); };
+    var motori = [
+      { nome: 'A', url: C.urlRicerca + '?q=' + q + '&langs=it&page_size=' + C.risultati + '&fields=' + campi, lista: 'hits' },
+      { nome: 'B', url: C.urlRicercaClassica + '?search_terms=' + q + '&search_simple=1&action=process&json=1&lc=it&page_size=' + C.risultati +
+          '&sort_by=unique_scans_n&fields=' + campi, lista: 'products', tentativi: [0, 2000, 4000] },
+      { nome: 'C', url: C.urlRicercaRiserva + '?q=' + q + '&langs=it&page_size=' + C.risultati + '&fields=' + campi, lista: 'hits' }
+    ];
+    var dettagli = [];
+    var interroga = function (m) {
+      var prova = function (i) {
+        return attendi((m.tentativi || [0])[i]).then(function () { return self._fetch(m.url); })
+          .catch(function (e) {
+            if (m.tentativi && i + 1 < m.tentativi.length) return prova(i + 1);
+            throw e;
+          });
+      };
+      return prova(0).then(function (j) {
+        var lista = (j && (j[m.lista] || j.hits || j.products)) || [];
+        return self._completa(lista).then(function (prodotti) {
+          dettagli.push(m.nome + ': ' + lista.length + '/' + prodotti.length);
+          return prodotti;
         });
-    };
-    var q = encodeURIComponent(testo);
-    var url1 = C.urlRicerca + '?search_terms=' + q + '&search_simple=1&action=process&json=1&page_size=' + C.risultati +
-      '&sort_by=unique_scans_n&fields=code,' + C.campi;
-    var url2 = C.urlRicerca2 + '?q=' + q + '&langs=it&page_size=' + C.risultati + '&fields=code,' + C.campi;
-    return this._fetch(url1)
-      .then(function (j) { return { prodotti: pulisci(j.products) }; })
-      // Se la ricerca principale non risponde, prova il nuovo motore di ricerca di Open Food Facts.
-      .catch(function () {
-        return self._fetch(url2).then(function (j) { return { prodotti: pulisci(j.hits || j.products) }; });
-      })
-      .catch(function () {
-        return { prodotti: [], errore: 'Ricerca non riuscita: Open Food Facts non risponde o hai fatto troppe ricerche in poco tempo. Riprova tra un minuto.' };
+      }, function (e) {
+        dettagli.push(m.nome + ': ' + (e && e.name === 'AbortError' ? 'tempo scaduto' : (e && e.message) || 'errore'));
+        throw e;
       });
+    };
+    return new Promise(function (fine) {
+      var rimasti = motori.length, risposte = 0, finito = false;
+      motori.forEach(function (m) {
+        interroga(m).then(function (prodotti) {
+          risposte++;
+          if (!finito && prodotti.length) { finito = true; fine({ prodotti: prodotti, dettagli: dettagli.join(' · ') }); }
+        }, function () {}).then(function () {
+          if (--rimasti || finito) return;
+          finito = true;
+          fine(risposte ? { prodotti: [], dettagli: dettagli.join(' · ') }
+            : { prodotti: [], dettagli: dettagli.join(' · '),
+                errore: 'Ricerca non riuscita: Open Food Facts non risponde in questo momento (succede spesso con la ricerca per nome). Riprova tra un minuto, oppure usa il codice a barre.' });
+        });
+      });
+    });
+  },
+
+  // Dai risultati grezzi ai prodotti completi; per quelli senza valori legge la scheda (max 12).
+  _completa: function (lista) {
+    var self = this, C = App.Config.openFoodFacts, visti = {};
+    var prodotti = lista.map(function (p) { return self.prodotto(p); }).filter(function (r) {
+      var k = r.codice || r.nome;
+      if (!k || visti[k]) return false;
+      visti[k] = 1; return true;
+    });
+    var daLeggere = prodotti.filter(function (r) { return !self.completo(r) && self.codiceValido(r.codice); }).slice(0, 12);
+    return Promise.all(daLeggere.map(function (r) {
+      return self._fetch(C.url + r.codice + '.json?fields=' + C.campi).then(function (j) {
+        if (j && j.status === 1 && j.product) { var n = self.prodotto(j.product, r.codice); if (self.completo(n)) Object.assign(r, n); }
+      }, function () {});
+    })).then(function () { return prodotti.filter(function (r) { return self.completo(r); }); });
   },
 
   /* Salva un prodotto trovato nell'archivio dei cibi (se c'è già con lo stesso codice, usa quello).

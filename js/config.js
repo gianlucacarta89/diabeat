@@ -8,7 +8,7 @@ window.App = window.App || {};
 
 App.Config = {
   nome: 'DiabEat',
-  versione: '1.8',
+  versione: '1.8.1',
   // Nome dello spazio di salvataggio: deve essere diverso per ogni app.
   // NON cambiarlo: è quello della prima versione, cambiarlo farebbe sparire i dati salvati.
   nomeArchivio: 'diario-insulina-gc',
@@ -95,9 +95,10 @@ App.Config = {
   // Open Food Facts: database gratuito dei prodotti confezionati.
   openFoodFacts: {
     url: 'https://world.openfoodfacts.org/api/v2/product/',
-    // Ricerca per nome: prodotti venduti in Italia (sito italiano di Open Food Facts).
-    urlRicerca: 'https://it.openfoodfacts.org/cgi/search.pl',
-    urlRicerca2: 'https://search.openfoodfacts.org/search',
+    // Ricerca per nome: tre motori interrogati insieme (vince il primo che trova prodotti).
+    urlRicerca: 'https://search.openfoodfacts.net/search',          // Search-a-licious (aggiornato, accetta le richieste dal sito)
+    urlRicercaClassica: 'https://world.openfoodfacts.org/cgi/search.pl', // ricerca classica (spesso lenta o in errore 503)
+    urlRicercaRiserva: 'https://search.openfoodfacts.org/search',   // Search-a-licious principale
     risultati: 24,
     campi: 'product_name,product_name_it,brands,nutriments,serving_quantity,serving_size'
   },

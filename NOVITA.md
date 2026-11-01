@@ -1,5 +1,11 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.8.1 — 01/11/2026
+- **Ricerca dei prodotti in commercio più affidabile:** la vecchia ricerca per nome di Open Food Facts va spesso in errore. Ora l'app interroga insieme tre motori di ricerca di Open Food Facts e usa il primo che trova prodotti; se un motore dà solo il nome, i valori nutrizionali vengono letti dalla scheda del prodotto.
+- Se la ricerca non riesce: pulsante **🔄 Riprova** e una riga di dettagli tecnici (utile per capire il problema).
+
+File: js/servizi/open-food-facts.js, js/ui/ui-pasto-cibi.js, js/config.js, sw.js.
+
 ## v1.8 — 01/11/2026
 - **Aggiornamenti sicuri:** con internet l'app prende sempre i file nuovi dal sito ("prima la rete"); senza internet usa la copia sul telefono. Prima il telefono poteva restare su una versione vecchia.
 - **Impostazioni → 🔄 Aggiorna app:** mostra la versione in uso e forza l'aggiornamento (i dati non si toccano).

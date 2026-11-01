@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.8
+# MAPPA — DiabEat v1.8.1
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -45,7 +45,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `calcolo-bolo.js` | **`calcola`: tutte le regole della dose** (ipo → parametri → carboidrati ÷ I/C → arrotondamento → avvisi e informazioni → pasto grasso) | riquadro del calcolo |
 | `diario.js` | `salvaPasto`, `eliminaPasto`, **bozze** (`leggiBozza`, `salvaBozza`, `togliBozza`), `salvaUmore` (uno al giorno), `aggiungiAttivita` (con intensità), `aggiungiIpo`, `aggiungiBoloExtra`, `rimuovi`, `salvaNote`, `cancellaDiario` | Diario |
 | `voce-testo.js` | `analizza(frase)` → cibi + grammi + candidati; `parolaNumero`, `pezzo` (grammi o unità + quantità), `unitaDi`, `dividi`, `ordina` (recenti, misura), `daMisura` | pulsante 🎤 Voce |
-| `open-food-facts.js` | `cerca(codice)`, `cercaNome(testo)` (prodotti in commercio per nome/marca), `salvaInArchivio`, `prodotto`, `completo` | pulsante 📷 Codice, pulsante 🌐 nella ricerca cibi |
+| `open-food-facts.js` | `cerca(codice)`, `cercaNome(testo)` (prodotti in commercio per nome/marca: tre motori insieme, vince il primo con risultati), `_completa` (legge le schede dei prodotti senza valori), `salvaInArchivio`, `prodotto`, `completo` | pulsante 📷 Codice, pulsante 🌐 nella ricerca cibi |
 | `statistiche.js` | `calcola(da, a)` | Statistiche, PDF |
 
 ## js/stampa/ (solo ASCII)
