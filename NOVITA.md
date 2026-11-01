@@ -1,5 +1,12 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.5 — 01/11/2026
+- **Cibi recenti:** nella ricerca, a campo vuoto, i **20 cibi inseriti più di recente** con la quantità dell'ultima volta. Il pulsante verde (es. "＋ 1 piatto") lo rimette uguale con un tocco; toccando il nome si apre la finestra già impostata con la stessa misura.
+- **Codice a barre:** il prodotto trovato su Open Food Facts viene **salvato subito in archivio**, con la porzione indicata sulla confezione come "1 porzione". Se mancano dei valori, si apre il modulo per completarli dall'etichetta.
+- **Aggiornamenti più rapidi:** quando c'è una versione nuova, l'app la scarica e si ricarica da sola, invece di aspettare l'apertura successiva.
+
+File: js/avvio.js, sw.js, js/config.js, js/servizi/open-food-facts.js, js/servizi/alimenti.js, js/servizi/nutrienti.js, js/ui/ui-scanner.js, js/ui/ui-pasto-cibi.js, js/ui/ui-voce.js, MAPPA.md.
+
 ## v1.4 — 01/11/2026
 - **Niente più categorie** dei cibi: un unico elenco, ordinato per pertinenza nella ricerca e alfabetico nell'archivio.
 - **Unità di misura** per la quantità: grammi, ml, cucchiaio, tazza, piatto, mezzo piatto, numero (pezzi). Ogni cibo ha i suoi pesi (es. 1 piatto di pasta cotta = 230 g, 1 cucchiaio d'olio = 10 g, 1 uovo = 55 g). Se un peso manca, l'app lo chiede una volta e lo ricorda; se lo cambi, ricorda il nuovo.

@@ -6,7 +6,7 @@
    (stanno in IndexedDB, non qui).
    Le richieste verso altri siti (Open Food Facts) passano sempre da internet.
    ============================================================ */
-var VERSIONE = 'diabeat-v1.4';
+var VERSIONE = 'diabeat-v1.5';
 var FILE = [
   'index.html',
   'manifest.webmanifest',
@@ -65,7 +65,10 @@ var FILE = [
 ];
 
 self.addEventListener('install', function (e) {
-  e.waitUntil(caches.open(VERSIONE).then(function (c) { return c.addAll(FILE); }).then(function () { return self.skipWaiting(); }));
+  // cache: 'reload' = scarica i file dal sito, non dalla cache del browser (che potrebbe avere quelli vecchi).
+  e.waitUntil(caches.open(VERSIONE).then(function (c) {
+    return c.addAll(FILE.map(function (f) { return new Request(f, { cache: 'reload' }); }));
+  }).then(function () { return self.skipWaiting(); }));
 });
 
 self.addEventListener('activate', function (e) {

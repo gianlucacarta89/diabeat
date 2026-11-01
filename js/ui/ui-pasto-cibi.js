@@ -32,12 +32,11 @@ App.UIPastoCibi = {
       '<button class="btn btn-contorno btn-pieno" data-az="nuovo">＋ Cibo nuovo in archivio</button>' +
     '</div>');
 
-    var scegli = function (a) {
-      self.chiediGrammi(a, function (v) {
-        callback([v]);
-        App.Avvisi.toast(a.nome + ' aggiunto (' + (v.quantita ? v.quantita + ', ' : '') + U.dec(v.grammi, 0) + ' g)', 'ok', 1800);
-      });
+    var aggiunto = function (v) {
+      callback([v]);
+      App.Avvisi.toast(v.nome + ' aggiunto (' + (v.quantita ? v.quantita + ', ' : '') + U.dec(v.grammi, 0) + ' g)', 'ok', 1800);
     };
+    var scegli = function (a, ultima) { self.chiediGrammi(a, aggiunto, null, ultima); };
 
     var disegna = function () {
       var testo = corpo.querySelector('#c-testo').value;
@@ -45,8 +44,24 @@ App.UIPastoCibi = {
       ul.innerHTML = '';
       var lista;
       if (!testo) {
-        lista = App.Alimenti.recenti(14, 12);
-        ul.appendChild(U.el('<li class="tenue"><small>' + (lista.length ? 'Usati di recente' : 'Scrivi il nome del cibo') + '</small></li>'));
+        // I 20 cibi inseriti più di recente: "＋" li aggiunge subito con la quantità dell'ultima volta.
+        var recenti = App.Alimenti.recentiDettaglio(60, 20);
+        ul.appendChild(U.el('<li class="tenue"><small>' + (recenti.length
+          ? 'Inseriti di recente: tocca il pulsante per rimetterlo uguale all\'ultima volta, o il nome per cambiare quantità'
+          : 'Scrivi il nome del cibo') + '</small></li>'));
+        recenti.forEach(function (x) {
+          var v = x.voce, et = (v.quantita ? v.quantita + ' · ' : '') + U.dec(v.grammi, 0) + ' g';
+          var li = U.el('<li class="card-cliccabile"><div class="nome">' + U.esc(x.alimento.nome) +
+            '<small>ultima volta: ' + U.esc(et) + '</small></div>' +
+            '<button class="btn btn-piccolo btn-verde" style="white-space:nowrap">＋ ' + U.esc(v.quantita || U.dec(v.grammi, 0) + ' g') + '</button></li>');
+          li.querySelector('button').onclick = function (e) {
+            e.stopPropagation();
+            aggiunto(App.Alimenti.comeUltimaVolta(x.alimento, v));
+          };
+          li.onclick = function () { scegli(x.alimento, v); };
+          ul.appendChild(li);
+        });
+        return;
       } else {
         lista = App.Alimenti.cerca(testo).slice(0, 60);
         if (!lista.length) ul.appendChild(U.el('<li class="tenue">Nessun cibo trovato. Puoi aggiungerlo con il pulsante qui sotto.</li>'));
@@ -70,11 +85,17 @@ App.UIPastoCibi = {
 
   /* Chiede quanto se ne mangia, con l'unità di misura scelta
      (grammi, ml, cucchiaio, tazza, piatto, mezzo piatto, numero).
-     callback(voce) se confermato. grammiIniziali: apre già in grammi. */
-  chiediGrammi: function (a, callback, grammiIniziali) {
+     callback(voce) se confermato. grammiIniziali: apre già in grammi.
+     ultima (facoltativa): voce dell'ultima volta, per riproporre la stessa misura e quantità. */
+  chiediGrammi: function (a, callback, grammiIniziali, ultima) {
     var U = App.Utils, UC = App.UIComune, A = App.Alimenti;
     var m = A.misure(a);
     var unita = grammiIniziali != null ? 'g' : (m.numero ? 'numero' : (m.piatto ? 'piatto' : 'g'));
+    var quanteIniziali = grammiIniziali;
+    if (ultima) {
+      if (ultima.unita && ultima.quante) { unita = ultima.unita; quanteIniziali = ultima.quante; }
+      else { unita = 'g'; quanteIniziali = ultima.grammi; }
+    }
     var corpo = U.el('<div><p><b>' + U.esc(a.nome) + '</b></p><p class="tenue">' + U.dec(a.carb) + ' g carboidrati per 100 g</p>' +
       '<label>Unità di misura</label><div class="riga" id="q-unita"></div>' +
       '<label for="q-quante" id="q-etichetta">Quantità</label>' +
@@ -83,7 +104,7 @@ App.UIPastoCibi = {
       '<div id="q-peso-box" style="margin-top:10px"></div>' +
       '<p class="centro" id="q-risultato" style="font-weight:700;color:var(--primario);margin-top:10px"></p></div>');
     var inp = corpo.querySelector('#q-quante');
-    if (grammiIniziali != null) inp.value = U.dec(grammiIniziali, 1);
+    if (quanteIniziali != null) inp.value = U.dec(quanteIniziali, 2);
 
     // Peso della misura scelta: quello salvato o quello scritto qui (che poi si salva).
     var pesoScritto = function () {
@@ -165,7 +186,7 @@ App.UIPastoCibi = {
       var g = calcola();
       var e = App.Sicurezza.grammi(g);
       if (e) { UC.errore(f.corpo, '#q-quante', e); return false; }
-      callback(App.Nutrienti.voce(cibo, g, A.testoQuantita(cibo, unita, q)));
+      callback(App.Nutrienti.voce(cibo, g, A.testoQuantita(cibo, unita, q), unita, q));
     };
     var fin = App.Avvisi.finestra({ titolo: 'Quanto ne mangi?', icona: '⚖️', classe: 'piccola', contenuto: corpo,
       pulsanti: [{ testo: 'Annulla', classe: 'btn-neutro' }, { testo: '＋ Aggiungi', classe: 'btn-verde', azione: conferma }] });

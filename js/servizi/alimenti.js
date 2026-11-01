@@ -93,19 +93,42 @@ App.Alimenti = {
     }).map(function (x) { return x.a; });
   },
 
-  // Cibi usati negli ultimi giorni, dal più frequente.
-  recenti: function (giorni, max) {
-    var U = App.Utils, conta = {};
-    for (var n = 0; n < (giorni || 14); n++) {
+  /* Cibi inseriti di recente, dal più recente, con l'ultima quantità usata.
+     Restituisce [{ alimento, voce }] (voce = come l'hai mangiato l'ultima volta). */
+  recentiDettaglio: function (giorni, max) {
+    var U = App.Utils, visti = {}, out = [], self = this;
+    max = max || 20;
+    for (var n = 0; n < (giorni || 60) && out.length < max; n++) {
       var g = App.Stato.giorno(U.aggiungiGiorni(U.oggi(), -n));
       if (!g) continue;
-      Object.keys(g.pasti).forEach(function (pid) {
-        (g.pasti[pid].voci || []).forEach(function (v) { conta[v.alimentoId] = (conta[v.alimentoId] || 0) + 1; });
-      });
+      // Pasti del giorno dal più tardi al più presto.
+      Object.keys(g.pasti).map(function (pid) { return g.pasti[pid]; })
+        .sort(function (a, b) { return (b.ora || '') < (a.ora || '') ? -1 : 1; })
+        .forEach(function (p) {
+          (p.voci || []).slice().reverse().forEach(function (v) {
+            if (out.length >= max || visti[v.alimentoId]) return;
+            visti[v.alimentoId] = 1;
+            var a = self.trova(v.alimentoId);
+            if (a) out.push({ alimento: a, voce: v });
+          });
+        });
     }
-    var self = this;
-    return Object.keys(conta).sort(function (a, b) { return conta[b] - conta[a]; })
-      .map(function (id) { return self.trova(id); }).filter(Boolean).slice(0, max || 12);
+    return out;
+  },
+
+  recenti: function (giorni, max) {
+    return this.recentiDettaglio(giorni, max).map(function (x) { return x.alimento; });
+  },
+
+  /* Ripete la quantità dell'ultima volta con i valori attuali del cibo.
+     Se era una misura (es. 1 piatto) usa il peso attuale della misura. Restituisce una voce di pasto. */
+  comeUltimaVolta: function (a, ultima) {
+    var g = ultima.grammi;
+    if (ultima.unita && ultima.quante) {
+      var p = this.pesoUnita(a, ultima.unita);
+      if (p) g = Math.round(ultima.quante * p * 10) / 10;
+    }
+    return App.Nutrienti.voce(a, g, ultima.quantita, ultima.unita, ultima.quante);
   },
 
   // --- Misure casalinghe ------------------------------------------

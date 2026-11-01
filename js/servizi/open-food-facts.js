@@ -1,8 +1,8 @@
 /* ============================================================
    servizi/open-food-facts.js
    Cerca un prodotto confezionato per codice a barre su Open Food
-   Facts (serve internet). Restituisce i valori per 100 g, che
-   l'utente controlla prima di salvarli in archivio.
+   Facts (serve internet). Restituisce i valori per 100 g e la
+   porzione della confezione; il prodotto viene salvato in archivio.
    Dipende da: App.Config.
    Usato da: ui/ui-scanner.js.
    ============================================================ */
@@ -35,7 +35,9 @@ App.OpenFoodFacts = {
         if (p.brands) nome = (nome ? nome + ' – ' : '') + String(p.brands).split(',')[0].trim();
         return {
           trovato: true, codice: codice, nome: nome,
-          carb: num(n.carbohydrates_100g), prot: num(n.proteins_100g), grassi: num(n.fat_100g)
+          carb: num(n.carbohydrates_100g), prot: num(n.proteins_100g), grassi: num(n.fat_100g),
+          // Porzione indicata sulla confezione (es. "30 g"), usata come "1 porzione" nella misura "numero".
+          porzione: num(p.serving_quantity)
         };
       })
       .catch(function () {

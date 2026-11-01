@@ -8,7 +8,7 @@ window.App = window.App || {};
 
 App.Config = {
   nome: 'DiabEat',
-  versione: '1.4',
+  versione: '1.5',
   // Nome dello spazio di salvataggio: deve essere diverso per ogni app.
   // NON cambiarlo: è quello della prima versione, cambiarlo farebbe sparire i dati salvati.
   nomeArchivio: 'diario-insulina-gc',
@@ -95,7 +95,7 @@ App.Config = {
   // Open Food Facts: database gratuito dei prodotti confezionati.
   openFoodFacts: {
     url: 'https://world.openfoodfacts.org/api/v2/product/',
-    campi: 'product_name,product_name_it,brands,nutriments'
+    campi: 'product_name,product_name_it,brands,nutriments,serving_quantity,serving_size'
   },
 
   // Riconoscimento vocale.

@@ -101,7 +101,7 @@ App.UIVoce = {
             var g = U.numero(corpo.querySelector('input[data-g="' + i + '"]').value);
             var e = App.Sicurezza.grammi(g);
             if (e) { App.UIComune.errore(f.corpo, 'input[data-g="' + i + '"]', a.nome + ' – ' + e); return false; }
-            voci.push(App.Nutrienti.voce(a, g, proposte[i].quantita));
+            voci.push(App.Nutrienti.voce(a, g, proposte[i].quantita, proposte[i].unita, proposte[i].quante));
           }
           if (!voci.length) { App.Avvisi.toast('Nessun cibo da aggiungere.', 'avviso'); return false; }
           callback(voci);

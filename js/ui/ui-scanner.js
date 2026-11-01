@@ -3,8 +3,9 @@
    Lettura del codice a barre con la fotocamera (libreria
    html5-qrcode in lib/), oppure inserimento a mano del codice.
    Se il prodotto è già in archivio lo restituisce subito;
-   altrimenti lo cerca su Open Food Facts (serve internet) e apre
-   il modulo per controllare i valori prima di salvarli.
+   altrimenti lo cerca su Open Food Facts (serve internet) e, se ha
+   tutti i valori, lo salva subito in archivio; se mancano valori
+   apre il modulo per completarli dall'etichetta.
    Dipende da: App.Alimenti, App.OpenFoodFacts, App.UIAlimentoForm,
                App.Avvisi, App.UIComune, App.Utils, libreria Html5Qrcode.
    Usato da: ui/ui-pasto.js, ui/ui-archivio.js.
@@ -44,13 +45,25 @@ App.UIScanner = {
       App.OpenFoodFacts.cerca(codice).then(function (r) {
         if (chiuso) return;
         fin.chiudi();
+        var dati = {
+          nome: r.nome || ('Prodotto ' + codice), carb: r.carb, prot: r.prot, grassi: r.grassi,
+          codice: App.OpenFoodFacts.codiceValido(codice) ? codice : '', fonte: r.trovato ? 'Open Food Facts' : 'Etichetta',
+          misure: (r.porzione && r.porzione >= 1) ? { numero: r.porzione, numeroNome: 'porzione', numeroPlurale: 'porzioni' } : null
+        };
+        // Trovato con tutti i valori: si salva subito in archivio, senza passaggi in più.
+        if (r.trovato) {
+          var salvato = App.Alimenti.salva(dati);
+          if (salvato.alimento) {
+            App.Avvisi.toast('Salvato in archivio: ' + salvato.alimento.nome + '. Valori da Open Food Facts: se qualcosa non torna con l\'etichetta, correggilo in Archivio.', 'ok', 6000);
+            callback(salvato.alimento);
+            return;
+          }
+        }
+        // Non trovato o valori incompleti: si scrivono dall'etichetta.
         var avviso = r.trovato
-          ? 'Valori trovati su Open Food Facts: <b>controllali con l\'etichetta</b> prima di salvare.'
+          ? 'Su Open Food Facts mancano alcuni valori: completali dall\'etichetta e salva.'
           : U.esc(r.errore || 'Prodotto non trovato.');
-        App.UIAlimentoForm.apri({
-          nome: r.nome || '', carb: r.carb, prot: r.prot, grassi: r.grassi,
-          codice: App.OpenFoodFacts.codiceValido(codice) ? codice : '', fonte: r.trovato ? 'Open Food Facts' : 'Etichetta'
-        }, callback, { titolo: r.trovato ? 'Controlla il prodotto' : 'Nuovo prodotto', avviso: avviso });
+        App.UIAlimentoForm.apri(dati, callback, { titolo: 'Nuovo prodotto', avviso: avviso });
       });
     };
 

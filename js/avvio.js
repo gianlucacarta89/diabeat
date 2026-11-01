@@ -23,9 +23,20 @@ App.avvia = function () {
     });
 
   // Uso offline: solo quando l'app è servita da un indirizzo web (non da file).
+  // A ogni apertura controlla se c'è una versione nuova; quando è pronta, la pagina si ricarica da sola
+  // (una volta sola), così l'aggiornamento si vede subito e non all'apertura successiva.
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    var cera = !!navigator.serviceWorker.controller, ricaricata = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!cera || ricaricata) return;
+      ricaricata = true;
+      if (!document.querySelector('.finestra-sfondo')) location.reload();
+      else App.Avvisi.toast('Nuova versione pronta: chiudi e riapri l\'app per vederla.', 'info', 6000);
+    });
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () { /* l'app funziona comunque online */ });
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+        .then(function (reg) { reg.update(); })
+        .catch(function () { /* l'app funziona comunque online */ });
     });
   }
 };

@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.4
+# MAPPA — DiabEat v1.5
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -38,7 +38,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `sicurezza.js` | `controlla` (limiti di config), `glicemia`, `grammi`, `dose`, `macro`, `ora`, `sottoSoglia`, `oltreMassimo`, `mancantiGenerali` (soglia ipo, dose max) | tutto |
 | `parametri.js` | `rapportoIC`, `mancanti`, `salva` (con **storico**), `storico` | Impostazioni → Rapporto insulina/carboidrati |
 | `nutrienti.js` | `per`, `voce` (copia i valori nel pasto), `aggiornaGrammi`, `totali` | pasto, modelli |
-| `alimenti.js` | `catalogo`, `tutti` (alfabetico), `trova`, `cerca` (punteggio, singolare/plurale), `recenti`, **misure**: `misure`, `unita`, `pesoUnita`, `nomiUnita`, `testoQuantita`, `salvaPeso`; `salva`, `elimina` (catalogo = nascosto), `ripristina`, `perCodice` | Archivio, ricerca cibi, voce, scanner |
+| `alimenti.js` | `catalogo`, `tutti` (alfabetico), `trova`, `cerca` (punteggio, singolare/plurale), `recentiDettaglio` (20 più recenti + ultima voce), `recenti`, `comeUltimaVolta`, **misure**: `misure`, `unita`, `pesoUnita`, `nomiUnita`, `testoQuantita`, `salvaPeso`; `salva`, `elimina` (catalogo = nascosto), `ripristina`, `perCodice` | Archivio, ricerca cibi, voce, scanner |
 | `modelli.js` | `tutti`, `salva`, `elimina`, `vociDa`, `carboidrati` | Archivio → Modelli, pulsante 📋 Modello |
 | `insulina-attiva.js` | `boli`, `calcola` (modello lineare sulla durata impostata) | informazione nel calcolo, riquadro "insulina attiva adesso" |
 | `pasto-grasso.js` | `livello` (nessuno/medio/alto), `valuta` (dose aggiuntiva indicativa, orari di controllo), `oraPiu` | **riquadro 🧈 pasto grasso**, chip nel diario, statistiche, PDF |
@@ -68,9 +68,9 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `ui-giorno-extra.js` | nel Diario: **Attività (con intensità), Boli extra, Ipoglicemie, Note** e le loro finestre; `finestraBolo` usata anche per la dose aggiuntiva del pasto grasso |
 | `ui-pasto.js` | finestra del **pasto** (ora, glicemia, cibi, dose, note, salva/elimina/scarta bozza) |
 | `ui-calcolo.js` | riquadro **Dose** nel pasto (passaggi, dose suggerita, avvisi, informazioni, **riquadro 🧈 pasto grasso** con pulsante "Registra la dose aggiuntiva", "Come si calcola") |
-| `ui-pasto-cibi.js` | pulsanti **🔍 Cerca** (ricerca + recenti), finestra **"Quanto ne mangi?"** con unità di misura e peso della misura, **📋 Modello** |
+| `ui-pasto-cibi.js` | pulsanti **🔍 Cerca** (ricerca + 20 recenti con "＋ come l'ultima volta"), finestra **"Quanto ne mangi?"** con unità di misura e peso della misura, **📋 Modello** |
 | `ui-voce.js` | pulsante **🎤 Voce** (consenso, microfono, frase scritta, conferma cibi) |
-| `ui-scanner.js` | pulsanti **📷 Codice** / **📷 Codice a barre** |
+| `ui-scanner.js` | pulsanti **📷 Codice** / **📷 Codice a barre** (salva subito il prodotto trovato) |
 | `ui-alimento-form.js` | finestra **Nuovo cibo / Modifica cibo / Controlla il prodotto** (con i pesi delle misure: cucchiaio, tazza, piatto, pezzo) |
 | `ui-archivio.js` | scheda **Archivio** → Cibi (ricerca, modifica, elimina, ripristina) |
 | `ui-modelli.js` | scheda **Archivio** → Modelli di pasto |
@@ -80,7 +80,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `ui-attivita-umori.js` | Impostazioni → **Le tue attività** (solo nomi; il nome del file è quello della v1.0) |
 
 ## js/avvio.js
-Sempre l'ultimo: apre l'archivio, carica i dati, disegna, registra `sw.js` solo se aperta da https.
+Sempre l'ultimo: apre l'archivio, carica i dati, disegna, registra `sw.js` solo se aperta da https e ricarica la pagina quando è pronta una versione nuova.
 
 ## Dati salvati (chiavi dell'archivio)
 `impostazioni`, `alimenti` (personali e correzioni del catalogo), `modelli` → permanenti.
