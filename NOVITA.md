@@ -1,5 +1,10 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.9 — 01/11/2026
+- **Pasto sbagliato? Spostalo:** nella finestra del pasto, sotto ora e glicemia, il pulsante "🔁 Pasto sbagliato? Spostalo in un altro pasto" porta ora, glicemia, cibi, dose e note in un altro pasto dello stesso giorno (es. da cena a spuntino prenanna). Funziona sia con i pasti salvati sia con quelli ancora da salvare; se il pasto di arrivo è già compilato chiede prima di sostituirlo.
+
+File: js/servizi/diario.js, js/ui/ui-pasto.js, js/config.js, sw.js, MAPPA.md.
+
 ## v1.8.1 — 01/11/2026
 - **Ricerca dei prodotti in commercio più affidabile:** la vecchia ricerca per nome di Open Food Facts va spesso in errore. Ora l'app interroga insieme tre motori di ricerca di Open Food Facts e usa il primo che trova prodotti; se un motore dà solo il nome, i valori nutrizionali vengono letti dalla scheda del prodotto.
 - Se la ricerca non riesce: pulsante **🔄 Riprova** e una riga di dettagli tecnici (utile per capire il problema).

@@ -45,6 +45,31 @@ App.Diario = {
     App.Stato.salva('giorni');
   },
 
+  /* Sposta un pasto (salvato e/o bozza) in un altro pasto dello stesso giorno,
+     es. registrato come cena invece che come spuntino prenanna.
+     bozza: i dati non ancora salvati (o null). Se il pasto di arrivo e' occupato
+     serve sostituisci=true. Restituisce { ok } oppure { errore, occupato }. */
+  occupato: function (iso, pastoId) {
+    var g = App.Stato.giorno(iso);
+    return !!((g && g.pasti[pastoId]) || this.leggiBozza(iso, pastoId));
+  },
+  spostaPasto: function (iso, da, a, bozza, sostituisci) {
+    if (da === a) return { errore: 'È già questo pasto.' };
+    if (this.occupato(iso, a) && !sostituisci) return { errore: 'Il pasto di arrivo è già compilato.', occupato: true };
+    var g = App.Stato.giorno(iso), salvato = g && g.pasti[da];
+    this.togliBozza(iso, a);
+    if (g) delete g.pasti[a];
+    if (salvato) {
+      App.Stato.assicuraGiorno(iso).pasti[a] = salvato;
+      delete g.pasti[da];
+    }
+    this.togliBozza(iso, da);
+    if (bozza) this.salvaBozza(iso, a, bozza);
+    App.Stato.pulisciGiorno(iso);
+    App.Stato.salva('giorni');
+    return { ok: true };
+  },
+
   // --- Bozze (pasti scritti e non ancora salvati) ---------------
   chiave: function (iso, pastoId) { return iso + '|' + pastoId; },
   leggiBozza: function (iso, pastoId) { return App.Stato.dati.bozze[this.chiave(iso, pastoId)] || null; },

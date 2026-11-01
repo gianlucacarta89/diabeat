@@ -31,6 +31,7 @@ App.UIPasto = {
         '<div>' + UC.campoOra('p-ora', 'Ora', b.ora) + '</div>' +
         '<div>' + UC.campo('p-glic', 'Glicemia', b.glicemia, 'mg/dL', { classe: 'grande' }) + '</div>' +
       '</div>' +
+      '<button class="btn btn-piccolo btn-neutro btn-pieno" style="margin-top:8px" data-az="sposta">🔁 Pasto sbagliato? Spostalo in un altro pasto</button>' +
       '<div class="sezione"><h2>Cibi</h2></div>' +
       '<div class="griglia-2" style="grid-template-columns:repeat(4,1fr);gap:6px">' +
         '<button class="btn btn-piccolo" data-az="cerca">🔍<br>Cerca</button>' +
@@ -111,6 +112,30 @@ App.UIPasto = {
     };
     corpo.querySelector('[data-az=modello]').onclick = function () { App.UIPastoCibi.modello(pastoId, aggiungiVoci); };
 
+    var finestraPasto = null;
+    corpo.querySelector('[data-az=sposta]').onclick = function () {
+      leggiCampi();
+      self.scegliPasto(iso, pastoId, function (destinazione) {
+        var cfgA = App.Config.pasti.filter(function (p) { return p.id === destinazione; })[0];
+        var esegui = function (sostituisci) {
+          var r = D.spostaPasto(iso, pastoId, destinazione, modificato ? b : null, sostituisci);
+          if (r.errore) { App.Avvisi.toast(r.errore, 'errore', 4000); return; }
+          modificato = false;
+          finestraPasto.chiudi();
+          App.Avvisi.toast('Spostato in ' + cfgA.nome.toLowerCase(), 'ok');
+          self.apri(iso, destinazione);
+        };
+        if (!salvato && !modificato) { // niente da spostare: apre solo l'altro pasto
+          finestraPasto.chiudi(); self.apri(iso, destinazione); return;
+        }
+        if (D.occupato(iso, destinazione)) {
+          App.Avvisi.conferma({ titolo: cfgA.nome + ' già compilato', icona: '⚠️', pericolo: true, ok: 'Sì, sostituisci',
+            testo: 'In questo giorno ' + cfgA.nome.toLowerCase() + ' ha già dei dati. Vuoi sostituirli con questo pasto?' })
+            .then(function (si) { if (si) esegui(true); });
+        } else esegui(false);
+      });
+    };
+
     var pulsanti = [];
     if (salvato) pulsanti.push({ testo: '🗑️', classe: 'btn-rosso', azione: function (f) {
       App.Avvisi.conferma({ titolo: 'Elimina pasto', testo: 'Vuoi eliminare ' + cfgPasto.nome.toLowerCase() + ' di questo giorno?', ok: 'Elimina', pericolo: true })
@@ -122,7 +147,7 @@ App.UIPasto = {
     } });
     pulsanti.push({ testo: '💾 Salva pasto', classe: 'btn-verde', azione: function (f) { self.salva(iso, pastoId, b, risultato, f, function () { modificato = false; }); return false; } });
 
-    App.Avvisi.finestra({
+    finestraPasto = App.Avvisi.finestra({
       titolo: cfgPasto.nome + ' · ' + U.formattaData(iso, true), icona: cfgPasto.icona, contenuto: corpo, pulsanti: pulsanti,
       allaChiusura: function () {
         if (modificato) App.Avvisi.toast('Bozza conservata: la ritrovi riaprendo il pasto.', 'info');
@@ -130,6 +155,21 @@ App.UIPasto = {
       }
     });
     disegnaVoci();
+  },
+
+  // Finestra per scegliere in quale pasto spostare quello aperto.
+  scegliPasto: function (iso, attuale, scelto) {
+    var U = App.Utils, D = App.Diario;
+    var corpo = U.el('<div><p class="tenue" style="margin-top:0">Ora, glicemia, cibi, dose e note passano al pasto che scegli.</p><ul class="elenco"></ul></div>');
+    var ul = corpo.querySelector('ul'), f;
+    App.Config.pasti.forEach(function (p) {
+      if (p.id === attuale) return;
+      var li = U.el('<li class="card-cliccabile"><div class="nome">' + p.icona + ' ' + U.esc(p.nome) +
+        (D.occupato(iso, p.id) ? '<small>già compilato</small>' : '') + '</div><span class="chip">→</span></li>');
+      li.onclick = function () { f.chiudi(); scelto(p.id); };
+      ul.appendChild(li);
+    });
+    f = App.Avvisi.finestra({ titolo: 'Sposta in…', icona: '🔁', contenuto: corpo, pulsanti: [] });
   },
 
   // Controlli prima di salvare, con conferma se la dose supera il massimo.

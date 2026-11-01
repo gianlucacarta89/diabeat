@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.8.1
+# MAPPA — DiabEat v1.9
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -43,7 +43,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `insulina-attiva.js` | `boli`, `calcola` (modello lineare sulla durata impostata) | informazione nel calcolo, riquadro "insulina attiva adesso" |
 | `pasto-grasso.js` | `livello` (nessuno/medio/alto), `valuta` (dose aggiuntiva indicativa, orari di controllo), `oraPiu` | **riquadro 🧈 pasto grasso**, chip nel diario, statistiche, PDF |
 | `calcolo-bolo.js` | **`calcola`: tutte le regole della dose** (ipo → parametri → carboidrati ÷ I/C → arrotondamento → avvisi e informazioni → pasto grasso) | riquadro del calcolo |
-| `diario.js` | `salvaPasto`, `eliminaPasto`, **bozze** (`leggiBozza`, `salvaBozza`, `togliBozza`), `salvaUmore` (uno al giorno), `aggiungiAttivita` (con intensità), `aggiungiIpo`, `aggiungiBoloExtra`, `rimuovi`, `salvaNote`, `cancellaDiario` | Diario |
+| `diario.js` | `salvaPasto`, `eliminaPasto`, `spostaPasto`, `occupato`, **bozze** (`leggiBozza`, `salvaBozza`, `togliBozza`), `salvaUmore` (uno al giorno), `aggiungiAttivita` (con intensità), `aggiungiIpo`, `aggiungiBoloExtra`, `rimuovi`, `salvaNote`, `cancellaDiario` | Diario |
 | `voce-testo.js` | `analizza(frase)` → cibi + grammi + candidati; `parolaNumero`, `pezzo` (grammi o unità + quantità), `unitaDi`, `dividi`, `ordina` (recenti, misura), `daMisura` | pulsante 🎤 Voce |
 | `open-food-facts.js` | `cerca(codice)`, `cercaNome(testo)` (prodotti in commercio per nome/marca: tre motori insieme, vince il primo con risultati), `_completa` (legge le schede dei prodotti senza valori), `salvaInArchivio`, `prodotto`, `completo` | pulsante 📷 Codice, pulsante 🌐 nella ricerca cibi |
 | `statistiche.js` | `calcola(da, a)` | Statistiche, PDF |
@@ -66,7 +66,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `ui-comune.js` | chip glicemia e dose, campi numerici, `errore`, nomi di pasti/attività/umori |
 | `ui-giorno.js` | scheda **Diario**: navigazione tra i giorni, avviso parametri mancanti, insulina attiva adesso, **stato d'animo del giorno**, sei pasti (con chip 🧈 pasto grasso) |
 | `ui-giorno-extra.js` | nel Diario: **Attività (con intensità), Boli extra, Ipoglicemie, Note** e le loro finestre; `finestraBolo` usata anche per la dose aggiuntiva del pasto grasso |
-| `ui-pasto.js` | finestra del **pasto** (ora, glicemia, cibi, dose, note, salva/elimina/scarta bozza) |
+| `ui-pasto.js` | finestra del **pasto** (ora, glicemia, **🔁 sposta in un altro pasto** con `scegliPasto`, cibi, dose, note, salva/elimina/scarta bozza) |
 | `ui-calcolo.js` | riquadro **Dose** nel pasto (passaggi, dose suggerita, avvisi, informazioni, **riquadro 🧈 pasto grasso** con pulsante "Registra la dose aggiuntiva", "Come si calcola") |
 | `ui-pasto-cibi.js` | pulsanti **🔍 Cerca** (ricerca + **🌐 prodotti in commercio** + 20 recenti con "＋ come l'ultima volta"), finestra **"Quanto ne mangi?"** con unità di misura e peso della misura, **📋 Modello** |
 | `ui-voce.js` | pulsante **🎤 Voce** (consenso, microfono, frase scritta, conferma cibi) |
