@@ -1,7 +1,8 @@
 /* ============================================================
    ui/ui-parametri.js
    Nelle impostazioni: rapporto insulina/carboidrati (uno solo
-   per tutta la giornata) con storico delle modifiche.
+   per tutta la giornata), correzione con la glicemia (facoltativa)
+   e storico delle modifiche.
    Dipende da: App.Parametri, App.UIComune, App.Avvisi, App.Utils.
    Usato da: ui/ui-impostazioni.js.
    ============================================================ */
@@ -17,6 +18,11 @@ App.UIParametri = {
       UC.campo('par-ic', 'Grammi di carboidrati coperti da 1 unità', App.Parametri.rapportoIC(), 'g/U',
         { classe: 'grande', aiuto: 'Uno solo per tutta la giornata. Dose suggerita = carboidrati ÷ questo valore.' }) +
       '<button class="btn btn-verde btn-pieno" style="margin-top:10px" data-az="salva">💾 Salva rapporto</button>' +
+      '<h3 style="margin:18px 0 4px">🎯 Correzione con la glicemia <small class="tenue">(facoltativa)</small></h3>' +
+      '<p class="aiuto" style="margin-top:0">Se li imposti, la dose del pasto si corregge: (glicemia − obiettivo) ÷ fattore. Sopra l\'obiettivo aggiunge unità, sotto le toglie. Concorda i valori con la tua diabetologa. Lasciali vuoti per non usarla.</p>' +
+      '<div class="griglia-2"><div>' + UC.campo('par-fc', 'Fattore di correzione', App.Stato.imp().fattoreCorrezione, 'mg/dL per 1 U', { aiuto: '1 unità abbassa di… (es. 30)' }) + '</div>' +
+      '<div>' + UC.campo('par-ob', 'Glicemia obiettivo', App.Stato.imp().obiettivo, 'mg/dL') + '</div></div>' +
+      '<button class="btn btn-verde btn-pieno" style="margin-top:10px" data-az="salvaCorr">💾 Salva correzione</button>' +
       '<details style="margin-top:12px"><summary class="tenue" style="cursor:pointer">📜 Storico delle modifiche</summary><div id="par-storico"></div></details>' +
     '</div>');
 
@@ -27,15 +33,24 @@ App.UIParametri = {
       card.replaceWith(self.crea());
     };
 
+    card.querySelector('[data-az=salvaCorr]').onclick = function () {
+      var e = App.Parametri.salvaCorrezione(UC.num(card, '#par-fc'), UC.num(card, '#par-ob'));
+      if (e) return UC.errore(card, '#par-fc', e);
+      App.Avvisi.toast(App.Parametri.correzione() ? 'Correzione salvata' : 'Correzione disattivata', 'ok');
+      card.replaceWith(self.crea());
+    };
+
     var st = card.querySelector('#par-storico');
     var storico = App.Parametri.storico().slice().reverse();
     if (!storico.length) st.innerHTML = '<p class="tenue">Nessuna modifica registrata.</p>';
+    var fmtC = function (x) { return !x || x.fattore == null ? 'nessuna' : '1 U = ' + U.dec(x.fattore) + ' mg/dL, obiettivo ' + U.dec(x.obiettivo); };
     var fmt = function (x) { return x == null ? '–' : U.dec(x) + ' g/U'; };
     storico.slice(0, 40).forEach(function (s) {
       var d = new Date(s.quando);
       st.appendChild(U.el('<div class="aiuto" style="padding:5px 0;border-bottom:1px dashed var(--bordo)"><b>' +
         U.formattaData(U.dataISO(d), true) + ' ' + U.esc(d.toTimeString().slice(0, 5)) + '</b> · ' +
-        fmt(s.prima) + ' → <b>' + fmt(s.dopo) + '</b>' + (s.vecchio ? ' (colazione, v1.0)' : '') + '</div>'));
+        (s.tipo === 'correzione' ? 'Correzione: ' + fmtC(s.prima) + ' → <b>' + fmtC(s.dopo) + '</b>'
+          : fmt(s.prima) + ' → <b>' + fmt(s.dopo) + '</b>' + (s.vecchio ? ' (colazione, v1.0)' : '')) + '</div>'));
     });
     return card;
   }

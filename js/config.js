@@ -8,7 +8,7 @@ window.App = window.App || {};
 
 App.Config = {
   nome: 'DiabEat',
-  versione: '1.9.1',
+  versione: '1.10',
   // Nome dello spazio di salvataggio: deve essere diverso per ogni app.
   // NON cambiarlo: è quello della prima versione, cambiarlo farebbe sparire i dati salvati.
   nomeArchivio: 'diario-insulina-gc',
@@ -65,6 +65,8 @@ App.Config = {
     grammi:      { min: 1,  max: 2000, unita: 'g' },
     dose:        { min: 0,  max: 100,  unita: 'U' },
     rapportoIC:  { min: 1,  max: 150,  unita: 'g per 1 U' },
+    fattoreCorrezione: { min: 5, max: 300, unita: 'mg/dL per 1 U' },
+    obiettivo:   { min: 80, max: 180,  unita: 'mg/dL' },
     durataOre:   { min: 2,  max: 8,    unita: 'ore' },
     sogliaIpo:   { min: 50, max: 100,  unita: 'mg/dL' },
     doseMax:     { min: 1,  max: 60,   unita: 'U' },
@@ -114,11 +116,11 @@ App.Config = {
               'È un aiuto al calcolo: la decisione sulla dose resta tua.',
     regoleCalcolo: [
       'Dose suggerita = carboidrati del pasto ÷ rapporto insulina/carboidrati (uno solo per tutta la giornata).',
-      'Non c\'è correzione automatica per la glicemia alta: se serve, la valuti tu.',
+      'Correzione con la glicemia (solo se imposti fattore di correzione e glicemia obiettivo): (glicemia − obiettivo) ÷ fattore. Sopra l\'obiettivo aggiunge unità, sotto le toglie. La dose non scende sotto 0.',
+      'Se imposti la durata d\'azione, l\'insulina ancora attiva si toglie solo dalla correzione in aumento (per non sommare due correzioni).',
       'Il risultato si arrotonda al passo della penna.',
       'Glicemia sotto la soglia di ipoglicemia: nessuna dose suggerita.',
       'Dose sopra il massimo impostato: avviso e conferma prima di salvarla.',
-      'Insulina ancora attiva (se imposti la durata d\'azione): solo un\'informazione, non entra nel calcolo.',
       'Pasto ricco di grassi o proteine: la dose suggerita non cambia; compare a parte una dose aggiuntiva indicativa da valutare dopo 2-3 ore.'
     ],
     avvisoVoce: 'Il riconoscimento vocale lo fa il telefono tramite i servizi di Google o Apple: ' +

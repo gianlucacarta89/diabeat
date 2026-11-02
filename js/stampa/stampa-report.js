@@ -44,7 +44,10 @@ App.StampaReport = {
     // Parametri
     y = B.titoloSezione(doc, y, 'Insulina e parametri attuali');
     y = B.testo(doc, y, 'Rapida: ' + imp.insulinaRapida.nome + ', passo penna ' + U.dec(imp.insulinaRapida.passo) + ' U. ' +
-      'Rapporto insulina/carboidrati: ' + v(imp.rapportoIC, 1, ' g per 1 U') + ' (unico per la giornata, senza correzione automatica). ' +
+      'Rapporto insulina/carboidrati: ' + v(imp.rapportoIC, 1, ' g per 1 U') + ' (unico per la giornata). ' +
+      (imp.fattoreCorrezione != null && imp.obiettivo != null
+        ? 'Correzione: 1 U ogni ' + U.dec(imp.fattoreCorrezione) + ' mg/dL, obiettivo ' + U.dec(imp.obiettivo) + ' mg/dL. '
+        : 'Nessuna correzione automatica per la glicemia. ') +
       'Soglia ipoglicemia: ' + v(imp.sogliaIpo, 0, ' mg/dL') + '. Dose massima per bolo: ' + v(imp.doseMax, 1, ' U') + '.');
     y = B.tabella(doc, y, ['Pasto', 'Glicemia media (mg/dL)', 'Misure'],
       App.Config.pasti.map(function (p) {

@@ -1,8 +1,9 @@
 /* ============================================================
    servizi/calcolo-bolo.js
    Calcolo della dose suggerita per un pasto, passo per passo.
-   Dalla v1.1: solo carboidrati ÷ rapporto insulina/carboidrati,
-   nessuna correzione automatica. Le regole sono scritte anche in
+   Carboidrati ÷ rapporto insulina/carboidrati; dalla v1.10, se
+   impostati fattore di correzione e obiettivo, + (glicemia − obiettivo)
+   ÷ fattore (in meno se la glicemia è sotto l'obiettivo). Le regole sono scritte anche in
    App.Config.testi.regoleCalcolo e mostrate nell'app: se cambi una
    regola qui, aggiorna il testo.
    Dipende da: App.Stato, App.Parametri, App.Sicurezza, App.InsulinaAttiva,
@@ -40,21 +41,42 @@ App.CalcoloBolo = {
     out.suggerita = U.arrotonda(out.esatta, imp.insulinaRapida.passo);
     out.righe.push({ etichetta: 'Carboidrati', valore: U.dec(tot.carb) + ' g ÷ ' + U.dec(ic) + ' g/U', nota: '= ' + U.dec(out.esatta, 2) + ' U' });
 
-    // 4. Informazioni che NON entrano nel calcolo.
-    if (dati.glicemia != null && imp.range && dati.glicemia > imp.range.alto) {
-      out.info.push('Glicemia ' + dati.glicemia + ' mg/dL: la dose suggerita non include una correzione.');
-    }
+    // 4. Insulina ancora attiva (se è impostata la durata d'azione).
+    var iobTot = 0;
     if (imp.insulinaRapida.durataOre != null) {
-      var iob = App.InsulinaAttiva.calcola(dati.data, U.momento(dati.data, dati.ora), dati.data + '|' + dati.pastoId);
-      if (iob.totale > 0) out.info.push('Hai ancora circa ' + U.dec(iob.totale, 1) + ' U di insulina rapida attiva da boli precedenti.');
+      iobTot = App.InsulinaAttiva.calcola(dati.data, U.momento(dati.data, dati.ora), dati.data + '|' + dati.pastoId).totale || 0;
     }
 
-    // 5. Avvisi di sicurezza.
+    // 5. Correzione con la glicemia (facoltativa).
+    var corr = App.Parametri.correzione();
+    if (corr && dati.glicemia != null) {
+      var c = (dati.glicemia - corr.obiettivo) / corr.fattore;
+      out.correzione = c;
+      out.righe.push({ etichetta: 'Correzione glicemia', valore: '(' + dati.glicemia + ' − ' + corr.obiettivo + ') ÷ ' + U.dec(corr.fattore),
+        nota: '= ' + (c > 0 ? '+' : '') + U.dec(c, 2) + ' U' });
+      if (c > 0 && iobTot > 0) {
+        var tolta = Math.min(c, iobTot);
+        c -= tolta;
+        out.righe.push({ etichetta: 'Insulina ancora attiva', valore: U.dec(iobTot, 1) + ' U', nota: '− ' + U.dec(tolta, 2) + ' U dalla correzione' });
+      }
+      out.esatta = Math.max(0, out.esatta + c);
+      out.suggerita = U.arrotonda(out.esatta, imp.insulinaRapida.passo);
+      out.righe.push({ etichetta: 'Totale', valore: '', nota: '= ' + U.dec(out.esatta, 2) + ' U' });
+      if (dati.glicemia < corr.obiettivo) out.info.push('Glicemia sotto l\'obiettivo (' + corr.obiettivo + ' mg/dL): la dose è ridotta di ' + U.dec(-((dati.glicemia - corr.obiettivo) / corr.fattore), 1) + ' U.');
+    } else {
+      if (!corr && dati.glicemia != null && imp.range && dati.glicemia > imp.range.alto) {
+        out.info.push('Glicemia ' + dati.glicemia + ' mg/dL: la dose suggerita non include una correzione (puoi impostarla in Impostazioni).');
+      }
+      if (corr && dati.glicemia == null) out.info.push('Scrivi la glicemia per includere la correzione.');
+    }
+    if (iobTot > 0) out.info.push('Hai ancora circa ' + U.dec(iobTot, 1) + ' U di insulina rapida attiva da boli precedenti.');
+
+    // 6. Avvisi di sicurezza.
     if (S.oltreMassimo(out.suggerita)) {
       out.avvisi.push('La dose suggerita supera il tuo massimo di ' + imp.doseMax + ' U: ricontrolla cibi e grammi.');
     }
 
-    // 6. Pasto ricco di grassi o proteine (riquadro a parte).
+    // 7. Pasto ricco di grassi o proteine (riquadro a parte).
     out.grasso = App.PastoGrasso.valuta(tot, out.suggerita, dati.ora);
     return out;
   }

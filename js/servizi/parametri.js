@@ -29,9 +29,31 @@ App.Parametri = {
     return null;
   },
 
+  // Correzione con la glicemia: attiva solo se ci sono entrambi i valori.
+  correzione: function () {
+    var imp = App.Stato.imp();
+    return (imp.fattoreCorrezione != null && imp.obiettivo != null) ? { fattore: imp.fattoreCorrezione, obiettivo: imp.obiettivo } : null;
+  },
+
+  /* Salva fattore di correzione e obiettivo (entrambi o nessuno). Restituisce un errore o null. */
+  salvaCorrezione: function (fattore, obiettivo) {
+    var S = App.Sicurezza;
+    if ((fattore == null) !== (obiettivo == null)) return 'Scrivi sia il fattore di correzione sia la glicemia obiettivo (o lasciali vuoti entrambi per non usare la correzione).';
+    var e = S.controlla('fattoreCorrezione', fattore, 'Fattore di correzione', false) || S.controlla('obiettivo', obiettivo, 'Glicemia obiettivo', false);
+    if (e) return e;
+    var imp = App.Stato.imp();
+    if (imp.fattoreCorrezione === fattore && imp.obiettivo === obiettivo) return null;
+    imp.storicoParametri.push({ quando: new Date().toISOString(), tipo: 'correzione',
+      prima: { fattore: imp.fattoreCorrezione, obiettivo: imp.obiettivo }, dopo: { fattore: fattore, obiettivo: obiettivo } });
+    imp.fattoreCorrezione = fattore; imp.obiettivo = obiettivo;
+    App.Stato.salva('impostazioni');
+    return null;
+  },
+
   // Storico in forma uniforme, anche per le voci della v1.0 (parametri per pasto).
   storico: function () {
     return App.Stato.imp().storicoParametri.map(function (s) {
+      if (s.tipo === 'correzione') return s;
       if (s.cambi) {
         var c = s.cambi[0] || {};
         return { quando: s.quando, prima: (c.prima || {}).rapportoIC, dopo: (c.dopo || {}).rapportoIC, vecchio: true };
