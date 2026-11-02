@@ -8,7 +8,7 @@
    (stanno in IndexedDB, non qui).
    Le richieste verso altri siti (Open Food Facts) passano sempre da internet.
    ============================================================ */
-var VERSIONE = 'diabeat-v1.10';
+var VERSIONE = 'diabeat-v1.10.1';
 var FILE = [
   'index.html',
   'manifest.webmanifest',

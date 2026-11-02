@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.10
+# MAPPA — DiabEat v1.10.1
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -36,13 +36,13 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | File | Funzioni principali | Usato da |
 |---|---|---|
 | `sicurezza.js` | `controlla` (limiti di config), `glicemia`, `grammi`, `dose`, `macro`, `ora`, `sottoSoglia`, `oltreMassimo`, `mancantiGenerali` (soglia ipo, dose max) | tutto |
-| `parametri.js` | `rapportoIC`, `mancanti`, `salva` (con **storico**), **`correzione`**, **`salvaCorrezione`** (fattore + obiettivo), `storico` | Impostazioni → Rapporto insulina/carboidrati |
+| `parametri.js` | `rapportoIC`, `mancanti`, `salva` (con **storico**), **`correzione`**, **`salvaCorrezione`** (fattore + obiettivo da/a), `storico` | Impostazioni → Rapporto insulina/carboidrati |
 | `nutrienti.js` | `per`, `voce` (copia i valori nel pasto), `aggiornaGrammi`, `totali` | pasto, modelli |
 | `alimenti.js` | `catalogo`, `tutti` (alfabetico), `trova`, `cerca` (punteggio, singolare/plurale, crudo prima per `pesatiCrudi`), `recentiDettaglio` (20 più recenti + ultima voce), `recenti`, `comeUltimaVolta`, **misure**: `misure`, `unita`, `pesoUnita`, `nomiUnita`, `testoQuantita`, `salvaPeso`; `salva`, `elimina` (catalogo = nascosto), `ripristina`, `perCodice` | Archivio, ricerca cibi, voce, scanner |
 | `modelli.js` | `tutti`, `salva`, `elimina`, `vociDa`, `carboidrati` | Archivio → Modelli, pulsante 📋 Modello |
 | `insulina-attiva.js` | `boli`, `calcola` (modello lineare sulla durata impostata) | informazione nel calcolo, riquadro "insulina attiva adesso" |
 | `pasto-grasso.js` | `livello` (nessuno/medio/alto), `valuta` (dose aggiuntiva indicativa, orari di controllo), `oraPiu` | **riquadro 🧈 pasto grasso**, chip nel diario, statistiche, PDF |
-| `calcolo-bolo.js` | **`calcola`: tutte le regole della dose** (ipo → parametri → carboidrati ÷ I/C → correzione (glicemia − obiettivo) ÷ fattore, meno insulina attiva se positiva → arrotondamento → avvisi e informazioni → pasto grasso) | riquadro del calcolo |
+| `calcolo-bolo.js` | **`calcola`: tutte le regole della dose** (ipo → parametri → carboidrati ÷ I/C → correzione fuori obiettivo (verso il limite alto o basso) ÷ fattore, meno insulina attiva se positiva → arrotondamento → avvisi e informazioni → pasto grasso) | riquadro del calcolo |
 | `diario.js` | `salvaPasto`, `eliminaPasto`, `spostaPasto`, `occupato`, **bozze** (`leggiBozza`, `salvaBozza`, `togliBozza`), `salvaUmore` (uno al giorno), `aggiungiAttivita` (con intensità), `aggiungiIpo`, `aggiungiBoloExtra`, `rimuovi`, `salvaNote`, `cancellaDiario` | Diario |
 | `voce-testo.js` | `analizza(frase)` → cibi + grammi + candidati; `parolaNumero`, `pezzo` (grammi o unità + quantità), `unitaDi`, `dividi`, `ordina` (recenti, misura), `daMisura` | pulsante 🎤 Voce |
 | `open-food-facts.js` | `cerca(codice)`, `cercaNome(testo)` (prodotti in commercio per nome/marca: tre motori insieme, vince il primo con risultati), `_completa` (legge le schede dei prodotti senza valori), `salvaInArchivio`, `prodotto`, `completo` | pulsante 📷 Codice, pulsante 🌐 nella ricerca cibi |

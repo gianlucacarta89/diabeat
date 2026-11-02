@@ -22,7 +22,8 @@ App.Stato = {
       insulinaRapida: { nome: 'NovoRapid', durataOre: null, passo: 0.5 },
       rapportoIC: null,
       fattoreCorrezione: null,   // mg/dL che 1 U abbassa (facoltativo)
-      obiettivo: null,           // glicemia obiettivo per la correzione (facoltativo)
+      obiettivo: null,           // obiettivo: limite basso (facoltativo)
+      obiettivoAlto: null,       // obiettivo: limite alto (uguale al basso se è un valore unico)
       storicoParametri: [],
       sogliaIpo: null,
       doseMax: null,

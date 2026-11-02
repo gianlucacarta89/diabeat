@@ -2,8 +2,9 @@
    servizi/calcolo-bolo.js
    Calcolo della dose suggerita per un pasto, passo per passo.
    Carboidrati ÷ rapporto insulina/carboidrati; dalla v1.10, se
-   impostati fattore di correzione e obiettivo, + (glicemia − obiettivo)
-   ÷ fattore (in meno se la glicemia è sotto l'obiettivo). Le regole sono scritte anche in
+   impostati fattore di correzione e obiettivo (un intervallo, es. 110-140):
+   sopra → + (glicemia − limite alto) ÷ fattore; sotto → − (limite basso −
+   glicemia) ÷ fattore; dentro → nessuna correzione. Le regole sono scritte anche in
    App.Config.testi.regoleCalcolo e mostrate nell'app: se cambi una
    regola qui, aggiorna il testo.
    Dipende da: App.Stato, App.Parametri, App.Sicurezza, App.InsulinaAttiva,
@@ -50,10 +51,13 @@ App.CalcoloBolo = {
     // 5. Correzione con la glicemia (facoltativa).
     var corr = App.Parametri.correzione();
     if (corr && dati.glicemia != null) {
-      var c = (dati.glicemia - corr.obiettivo) / corr.fattore;
+      var rif = dati.glicemia > corr.alto ? corr.alto : dati.glicemia < corr.basso ? corr.basso : null;
+      var c = rif == null ? 0 : (dati.glicemia - rif) / corr.fattore;
       out.correzione = c;
-      out.righe.push({ etichetta: 'Correzione glicemia', valore: '(' + dati.glicemia + ' − ' + corr.obiettivo + ') ÷ ' + U.dec(corr.fattore),
-        nota: '= ' + (c > 0 ? '+' : '') + U.dec(c, 2) + ' U' });
+      out.righe.push(rif == null
+        ? { etichetta: 'Correzione glicemia', valore: dati.glicemia + ' mg/dL, dentro l\'obiettivo ' + corr.testo, nota: '= 0 U' }
+        : { etichetta: 'Correzione glicemia', valore: '(' + dati.glicemia + ' − ' + rif + ') ÷ ' + U.dec(corr.fattore),
+            nota: '= ' + (c > 0 ? '+' : '') + U.dec(c, 2) + ' U' });
       if (c > 0 && iobTot > 0) {
         var tolta = Math.min(c, iobTot);
         c -= tolta;
@@ -62,7 +66,7 @@ App.CalcoloBolo = {
       out.esatta = Math.max(0, out.esatta + c);
       out.suggerita = U.arrotonda(out.esatta, imp.insulinaRapida.passo);
       out.righe.push({ etichetta: 'Totale', valore: '', nota: '= ' + U.dec(out.esatta, 2) + ' U' });
-      if (dati.glicemia < corr.obiettivo) out.info.push('Glicemia sotto l\'obiettivo (' + corr.obiettivo + ' mg/dL): la dose è ridotta di ' + U.dec(-((dati.glicemia - corr.obiettivo) / corr.fattore), 1) + ' U.');
+      if (dati.glicemia < corr.basso) out.info.push('Glicemia sotto l\'obiettivo (' + corr.testo + ' mg/dL): la dose è ridotta di ' + U.dec(-out.correzione, 1) + ' U.');
     } else {
       if (!corr && dati.glicemia != null && imp.range && dati.glicemia > imp.range.alto) {
         out.info.push('Glicemia ' + dati.glicemia + ' mg/dL: la dose suggerita non include una correzione (puoi impostarla in Impostazioni).');

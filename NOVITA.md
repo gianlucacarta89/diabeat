@@ -1,5 +1,10 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.10.1 — 02/11/2026
+- **Obiettivo come intervallo** (es. 110-140 mg/dL): dentro l'intervallo nessuna correzione; sopra si corregge verso il limite alto, sotto verso il limite basso. Per un valore unico si lascia vuoto "a".
+
+File: js/servizi/calcolo-bolo.js, js/servizi/parametri.js, js/ui/ui-parametri.js, js/core/stato.js, js/stampa/stampa-report.js, js/config.js, sw.js, MAPPA.md.
+
 ## v1.10 — 02/11/2026
 - **Correzione con la glicemia (facoltativa):** in Impostazioni → Rapporto insulina/carboidrati si impostano il **fattore di correzione** (es. 1 U = 30 mg/dL) e la **glicemia obiettivo**. La dose del pasto diventa: carboidrati ÷ rapporto + (glicemia − obiettivo) ÷ fattore. Sotto l'obiettivo la dose si riduce, sopra aumenta; non scende sotto 0. Il calcolo mostra la riga "Correzione glicemia".
 - Se è impostata la durata d'azione, l'insulina ancora attiva si toglie solo dalla correzione in aumento.
