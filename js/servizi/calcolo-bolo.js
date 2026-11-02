@@ -23,12 +23,10 @@ App.CalcoloBolo = {
     var tot = App.Nutrienti.totali(dati.voci);
     var out = { stato: 'ok', mancanti: [], righe: [], esatta: null, suggerita: null, avvisi: [], info: [], totali: tot, grasso: null };
 
-    // 1. Blocco ipoglicemia: viene prima di tutto.
+    // 1. Ipoglicemia: dalla v1.11.1 la dose si calcola comunque, con un avviso ben visibile.
     if (dati.glicemia != null && S.sottoSoglia(dati.glicemia)) {
-      out.stato = 'ipo';
-      out.avvisi.push('Glicemia ' + dati.glicemia + ' mg/dL, sotto la tua soglia di ' + imp.sogliaIpo +
-        ' mg/dL: nessuna dose suggerita. Prima tratta l\'ipoglicemia e ricontrolla.');
-      return out;
+      out.ipo = 'Glicemia ' + dati.glicemia + ' mg/dL, sotto la tua soglia di ' + imp.sogliaIpo +
+        ' mg/dL. Valuta tu dose e momento dell\'iniezione (es. tratta prima l\'ipoglicemia o fai la dose a fine pasto).';
     }
 
     // 2. Parametri necessari.

@@ -8,7 +8,7 @@ window.App = window.App || {};
 
 App.Config = {
   nome: 'DiabEat',
-  versione: '1.11',
+  versione: '1.11.1',
   // Nome dello spazio di salvataggio: deve essere diverso per ogni app.
   // NON cambiarlo: è quello della prima versione, cambiarlo farebbe sparire i dati salvati.
   nomeArchivio: 'diario-insulina-gc',
@@ -127,7 +127,7 @@ App.Config = {
       'Correzione con la glicemia (solo se imposti il fattore di correzione): l\'obiettivo si sceglie in ogni pasto (90-110, 110-130, 130-160). Dentro l\'obiettivo nessuna correzione; sopra: (glicemia − limite alto) ÷ fattore in più; sotto: (limite basso − glicemia) ÷ fattore in meno. La dose non scende sotto 0.',
       'Se imposti la durata d\'azione, l\'insulina ancora attiva si toglie solo dalla correzione in aumento (per non sommare due correzioni).',
       'Il risultato si arrotonda al passo della penna.',
-      'Glicemia sotto la soglia di ipoglicemia: nessuna dose suggerita.',
+      'Glicemia sotto la soglia di ipoglicemia: la dose suggerita si calcola comunque (con la correzione, se attiva, che la riduce) e compare un avviso; la decisione è tua.',
       'Dose sopra il massimo impostato: avviso e conferma prima di salvarla.',
       'Pasto ricco di grassi o proteine: la dose suggerita non cambia; compare a parte una dose aggiuntiva indicativa da valutare dopo 2-3 ore.'
     ],

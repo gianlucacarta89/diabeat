@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.11
+# MAPPA — DiabEat v1.11.1
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -42,7 +42,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `modelli.js` | `tutti`, `salva`, `elimina`, `vociDa`, `carboidrati` | Archivio → Modelli, pulsante 📋 Modello |
 | `insulina-attiva.js` | `boli`, `calcola` (modello lineare sulla durata impostata) | informazione nel calcolo, riquadro "insulina attiva adesso" |
 | `pasto-grasso.js` | `livello` (nessuno/medio/alto), `valuta` (dose aggiuntiva indicativa, orari di controllo), `oraPiu` | **riquadro 🧈 pasto grasso**, chip nel diario, statistiche, PDF |
-| `calcolo-bolo.js` | **`calcola`: tutte le regole della dose** (ipo → parametri → carboidrati ÷ I/C → correzione fuori obiettivo (verso il limite alto o basso) ÷ fattore, meno insulina attiva se positiva → arrotondamento → avvisi e informazioni → pasto grasso) | riquadro del calcolo |
+| `calcolo-bolo.js` | **`calcola`: tutte le regole della dose** (ipo = solo avviso → parametri → carboidrati ÷ I/C → correzione fuori obiettivo (verso il limite alto o basso) ÷ fattore, meno insulina attiva se positiva → arrotondamento → avvisi e informazioni → pasto grasso) | riquadro del calcolo |
 | `diario.js` | `salvaPasto`, `eliminaPasto`, `spostaPasto`, `occupato`, **bozze** (`leggiBozza`, `salvaBozza`, `togliBozza`), `salvaUmore` (uno al giorno), `aggiungiAttivita` (con intensità), `aggiungiIpo`, `aggiungiBoloExtra`, `rimuovi`, `salvaNote`, `cancellaDiario` | Diario |
 | `voce-testo.js` | `analizza(frase)` → cibi + grammi + candidati; `parolaNumero`, `pezzo` (grammi o unità + quantità), `unitaDi`, `dividi`, `ordina` (recenti, misura), `daMisura` | pulsante 🎤 Voce |
 | `open-food-facts.js` | `cerca(codice)`, `cercaNome(testo)` (prodotti in commercio per nome/marca: tre motori insieme, vince il primo con risultati), `_completa` (legge le schede dei prodotti senza valori), `salvaInArchivio`, `prodotto`, `completo` | pulsante 📷 Codice, pulsante 🌐 nella ricerca cibi |

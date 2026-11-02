@@ -14,6 +14,7 @@ App.UICalcolo = {
     var U = App.Utils;
     var lista = function (arr) { return '<ul>' + arr.map(function (a) { return '<li>' + U.esc(a) + '</li>'; }).join('') + '</ul>'; };
     var html = '';
+    var ipo = r.ipo ? '<div class="riquadro riquadro-pericolo"><b>⚠️ Ipoglicemia</b><br>' + U.esc(r.ipo) + '</div>' : '';
     if (r.stato === 'ipo') {
       html = '<div class="riquadro riquadro-pericolo"><b>⛔ Nessuna dose suggerita</b><br>' + U.esc(r.avvisi[0]) + '</div>';
     } else if (r.stato === 'mancano') {
@@ -37,7 +38,7 @@ App.UICalcolo = {
           App.Config.testi.regoleCalcolo.map(function (t) { return '<li>' + U.esc(t) + '</li>'; }).join('') +
         '</ul><div class="aiuto">' + U.esc(App.Config.testi.premessa) + '</div></details>';
     }
-    box.innerHTML = html;
+    box.innerHTML = ipo + html;
     var b = box.querySelector('[data-az=imp]');
     if (b) b.onclick = function () {
       document.querySelectorAll('.finestra-sfondo').forEach(function (x) { x.remove(); });

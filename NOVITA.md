@@ -1,5 +1,10 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.11.1 — 02/11/2026
+- **Dose suggerita anche in ipoglicemia:** con la glicemia sotto la soglia la dose si calcola comunque (la correzione, se attiva, la riduce) e sopra compare un avviso rosso "⚠️ Ipoglicemia". La decisione resta tua.
+
+File: js/servizi/calcolo-bolo.js, js/ui/ui-calcolo.js, js/config.js, sw.js, MAPPA.md.
+
 ## v1.11 — 02/11/2026
 - **Obiettivo della glicemia scelto pasto per pasto:** nella finestra del pasto, sotto ora e glicemia, il menu **🎯 Obiettivo glicemia** offre 90-110 (giornata tranquilla), 110-130 (giornata normale), 130-160 (allenamento o partita in arrivo). La correzione si ricalcola subito; l'obiettivo scelto si salva con il pasto e compare nel PDF.
 - In Impostazioni restano il fattore di correzione e l'**obiettivo proposto** di partenza (110-130). L'intervallo fisso della v1.10.1 non c'è più.
