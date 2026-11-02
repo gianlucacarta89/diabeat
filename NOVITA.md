@@ -1,5 +1,12 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.11 — 02/11/2026
+- **Obiettivo della glicemia scelto pasto per pasto:** nella finestra del pasto, sotto ora e glicemia, il menu **🎯 Obiettivo glicemia** offre 90-110 (giornata tranquilla), 110-130 (giornata normale), 130-160 (allenamento o partita in arrivo). La correzione si ricalcola subito; l'obiettivo scelto si salva con il pasto e compare nel PDF.
+- In Impostazioni restano il fattore di correzione e l'**obiettivo proposto** di partenza (110-130). L'intervallo fisso della v1.10.1 non c'è più.
+- Gli intervalli sono in `obiettiviGlicemia` in config.
+
+File: js/config.js, js/core/stato.js, js/servizi/parametri.js, js/servizi/calcolo-bolo.js, js/servizi/diario.js, js/ui/ui-parametri.js, js/ui/ui-pasto.js, js/stampa/stampa-report.js, sw.js, MAPPA.md.
+
 ## v1.10.1 — 02/11/2026
 - **Obiettivo come intervallo** (es. 110-140 mg/dL): dentro l'intervallo nessuna correzione; sopra si corregge verso il limite alto, sotto verso il limite basso. Per un valore unico si lascia vuoto "a".
 

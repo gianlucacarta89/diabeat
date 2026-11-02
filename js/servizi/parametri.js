@@ -29,32 +29,33 @@ App.Parametri = {
     return null;
   },
 
-  // Correzione con la glicemia: attiva solo se ci sono entrambi i valori.
-  correzione: function () {
-    var imp = App.Stato.imp();
-    if (imp.fattoreCorrezione == null || imp.obiettivo == null) return null;
-    var basso = imp.obiettivo, alto = imp.obiettivoAlto != null ? imp.obiettivoAlto : imp.obiettivo;
-    return { fattore: imp.fattoreCorrezione, basso: basso, alto: alto, testo: basso === alto ? String(basso) : basso + '-' + alto };
+  // Obiettivi della glicemia (Config.obiettiviGlicemia). Senza id o con id sconosciuto: quello predefinito.
+  obiettivo: function (id) {
+    var L = App.Config.obiettiviGlicemia;
+    var trova = function (x) { return L.filter(function (o) { return o.id === x; })[0]; };
+    return trova(id) || trova(App.Stato.imp().obiettivoPredefinito) || trova(App.Config.obiettivoPredefinito) || L[0];
   },
 
-  /* Salva fattore di correzione e obiettivo da/a (tutti o nessuno; "a" vuoto = valore unico).
-     Restituisce un errore o null. */
-  salvaCorrezione: function (fattore, obiettivo, obiettivoAlto) {
-    var S = App.Sicurezza;
-    if (obiettivo == null && obiettivoAlto != null) { obiettivo = obiettivoAlto; obiettivoAlto = null; }
-    if ((fattore == null) !== (obiettivo == null)) return 'Scrivi sia il fattore di correzione sia la glicemia obiettivo (o lasciali vuoti per non usare la correzione).';
-    var e = S.controlla('fattoreCorrezione', fattore, 'Fattore di correzione', false) || S.controlla('obiettivo', obiettivo, 'Obiettivo (da)', false) ||
-      S.controlla('obiettivo', obiettivoAlto, 'Obiettivo (a)', false);
-    if (e) return e;
-    if (obiettivoAlto != null && obiettivoAlto < obiettivo) return 'Obiettivo: il valore "a" deve essere maggiore o uguale a "da".';
-    if (obiettivoAlto === obiettivo) obiettivoAlto = null;
-    if (fattore == null) obiettivoAlto = null;
+  // Correzione con la glicemia: attiva solo se c'è il fattore di correzione.
+  correzione: function (obiettivoId) {
     var imp = App.Stato.imp();
-    if (imp.fattoreCorrezione === fattore && imp.obiettivo === obiettivo && (imp.obiettivoAlto == null ? null : imp.obiettivoAlto) === obiettivoAlto) return null;
+    if (imp.fattoreCorrezione == null) return null;
+    var o = this.obiettivo(obiettivoId);
+    return { fattore: imp.fattoreCorrezione, basso: o.da, alto: o.a, testo: o.nome, id: o.id };
+  },
+
+  /* Salva fattore di correzione (vuoto = correzione spenta) e obiettivo predefinito.
+     Restituisce un errore o null. */
+  salvaCorrezione: function (fattore, predefinito) {
+    var e = App.Sicurezza.controlla('fattoreCorrezione', fattore, 'Fattore di correzione', false);
+    if (e) return e;
+    predefinito = this.obiettivo(predefinito).id;
+    var imp = App.Stato.imp();
+    if (imp.fattoreCorrezione === fattore && imp.obiettivoPredefinito === predefinito) return null;
     imp.storicoParametri.push({ quando: new Date().toISOString(), tipo: 'correzione',
-      prima: { fattore: imp.fattoreCorrezione, obiettivo: imp.obiettivo, obiettivoAlto: imp.obiettivoAlto },
-      dopo: { fattore: fattore, obiettivo: obiettivo, obiettivoAlto: obiettivoAlto } });
-    imp.fattoreCorrezione = fattore; imp.obiettivo = obiettivo; imp.obiettivoAlto = obiettivoAlto;
+      prima: { fattore: imp.fattoreCorrezione, predefinito: imp.obiettivoPredefinito },
+      dopo: { fattore: fattore, predefinito: predefinito } });
+    imp.fattoreCorrezione = fattore; imp.obiettivoPredefinito = predefinito;
     App.Stato.salva('impostazioni');
     return null;
   },

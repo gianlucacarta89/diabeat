@@ -22,6 +22,8 @@ App.UIPasto = {
       ora: iso === U.oggi() ? U.oraAdesso() : cfgPasto.ora,
       glicemia: null, voci: [], dose: null, note: ''
     };
+    var correzioneAttiva = App.Stato.imp().fattoreCorrezione != null;
+    if (correzioneAttiva && !b.obiettivo) b.obiettivo = App.Parametri.obiettivo().id;
     var modificato = !!bozza;
     var risultato = null;
 
@@ -31,6 +33,10 @@ App.UIPasto = {
         '<div>' + UC.campoOra('p-ora', 'Ora', b.ora) + '</div>' +
         '<div>' + UC.campo('p-glic', 'Glicemia', b.glicemia, 'mg/dL', { classe: 'grande' }) + '</div>' +
       '</div>' +
+      (correzioneAttiva ? '<label for="p-obiettivo">🎯 Obiettivo glicemia</label><select id="p-obiettivo">' +
+        App.Config.obiettiviGlicemia.map(function (o) {
+          return '<option value="' + o.id + '"' + (o.id === b.obiettivo ? ' selected' : '') + '>' + U.esc(o.nome + ' mg/dL · ' + o.nota) + '</option>';
+        }).join('') + '</select>' : '') +
       '<button class="btn btn-piccolo btn-neutro btn-pieno" style="margin-top:8px" data-az="sposta">🔁 Pasto sbagliato? Spostalo in un altro pasto</button>' +
       '<div class="sezione"><h2>Cibi</h2></div>' +
       '<div class="griglia-2" style="grid-template-columns:repeat(4,1fr);gap:6px">' +
@@ -57,10 +63,12 @@ App.UIPasto = {
       b.glicemia = UC.num(corpo, '#p-glic');
       b.dose = UC.num(corpo, '#p-dose');
       b.note = corpo.querySelector('#p-note').value;
+      var ob = corpo.querySelector('#p-obiettivo');
+      if (ob) b.obiettivo = ob.value;
     };
 
     var disegnaCalcolo = function () {
-      risultato = App.CalcoloBolo.calcola({ data: iso, pastoId: pastoId, ora: b.ora, glicemia: b.glicemia, voci: b.voci });
+      risultato = App.CalcoloBolo.calcola({ data: iso, pastoId: pastoId, ora: b.ora, glicemia: b.glicemia, voci: b.voci, obiettivo: b.obiettivo });
       App.UICalcolo.disegna(corpo.querySelector('#p-calcolo'), risultato, iso);
       corpo.querySelector('[data-az=usa]').disabled = risultato.stato !== 'ok' || risultato.suggerita == null;
     };
@@ -97,6 +105,7 @@ App.UIPasto = {
     };
 
     // Eventi dei campi
+    if (correzioneAttiva) corpo.querySelector('#p-obiettivo').onchange = function () { leggiCampi(); tocca(); disegnaCalcolo(); };
     ['#p-ora', '#p-glic', '#p-dose', '#p-note'].forEach(function (sel) {
       corpo.querySelector(sel).addEventListener('input', function () { leggiCampi(); tocca(); if (sel !== '#p-note' && sel !== '#p-dose') disegnaCalcolo(); });
     });
@@ -176,7 +185,8 @@ App.UIPasto = {
   salva: function (iso, pastoId, b, risultato, f, fatto) {
     var procedi = function () {
       var r = App.Diario.salvaPasto(iso, pastoId, {
-        ora: b.ora, glicemia: b.glicemia, voci: b.voci, dose: b.dose, suggerita: risultato && risultato.stato === 'ok' ? risultato.suggerita : null, note: (b.note || '').trim()
+        ora: b.ora, glicemia: b.glicemia, voci: b.voci, dose: b.dose, suggerita: risultato && risultato.stato === 'ok' ? risultato.suggerita : null, note: (b.note || '').trim(),
+        obiettivo: b.obiettivo || null
       });
       if (r.errore) { App.UIComune.errore(f.corpo, null, r.errore); return; }
       fatto();

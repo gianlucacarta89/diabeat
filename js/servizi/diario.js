@@ -12,7 +12,7 @@ window.App = window.App || {};
 
 App.Diario = {
   // --- Pasti --------------------------------------------------
-  /* dati: { ora, glicemia, voci, dose, suggerita, note } */
+  /* dati: { ora, glicemia, voci, dose, suggerita, note, obiettivo } */
   salvaPasto: function (iso, pastoId, dati) {
     var S = App.Sicurezza;
     var e = S.ora(dati.ora) || S.glicemia(dati.glicemia, false) || S.dose(dati.dose, false);
@@ -28,6 +28,7 @@ App.Diario = {
     g.pasti[pastoId] = {
       ora: dati.ora, glicemia: dati.glicemia, voci: dati.voci,
       dose: dati.dose, suggerita: dati.suggerita, note: dati.note || '',
+      obiettivo: dati.obiettivo || null,
       salvato: new Date().toISOString()
     };
     this.togliBozza(iso, pastoId);

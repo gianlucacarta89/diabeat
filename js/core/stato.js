@@ -22,8 +22,7 @@ App.Stato = {
       insulinaRapida: { nome: 'NovoRapid', durataOre: null, passo: 0.5 },
       rapportoIC: null,
       fattoreCorrezione: null,   // mg/dL che 1 U abbassa (facoltativo)
-      obiettivo: null,           // obiettivo: limite basso (facoltativo)
-      obiettivoAlto: null,       // obiettivo: limite alto (uguale al basso se è un valore unico)
+      obiettivoPredefinito: C.obiettivoPredefinito, // obiettivo proposto nei pasti (id di Config.obiettiviGlicemia)
       storicoParametri: [],
       sogliaIpo: null,
       doseMax: null,
@@ -57,6 +56,7 @@ App.Stato = {
       if (uguali) imp.rapportoIC = valori[0];
     }
     delete imp.parametri; delete imp.insulinaBasale; delete imp.umori;
+    delete imp.obiettivo; delete imp.obiettivoAlto; // v1.10: obiettivo fisso, ora si sceglie nel pasto
     imp.insulinaRapida = Object.assign({ nome: 'NovoRapid', durataOre: null, passo: 0.5 }, imp.insulinaRapida || {});
     imp.range = Object.assign({ basso: 70, alto: 180 }, imp.range || {});
     if (!Array.isArray(imp.storicoParametri)) imp.storicoParametri = [];

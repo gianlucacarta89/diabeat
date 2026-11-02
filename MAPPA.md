@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.10.1
+# MAPPA — DiabEat v1.11
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -19,7 +19,7 @@ Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello
 | `css/schermi-grandi.css` | Tablet (pasti su 2 colonne, finestre centrate) e computer (barra in alto) |
 
 ## js/config.js
-Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: grammi, ml, cucchiaio, tazza, piatto, mezzo piatto, numero, con i pulsanti rapidi), attività di partenza, intensità, **stati d'animo**, **limiti dei valori accettati**, **`pastoGrasso`** (soglie di grassi e proteine, % della dose aggiuntiva, orari dei controlli), **`pesatiCrudi`** (pasta e riso: prima il crudo), passi penna, range statistiche, Open Food Facts, testi (premessa, **regole del calcolo mostrate nell'app**, avviso voce, avviso catalogo).
+Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: grammi, ml, cucchiaio, tazza, piatto, mezzo piatto, numero, con i pulsanti rapidi), attività di partenza, intensità, **stati d'animo**, **limiti dei valori accettati**, **`pastoGrasso`** (soglie di grassi e proteine, % della dose aggiuntiva, orari dei controlli), **`obiettiviGlicemia`** (90-110, 110-130, 130-160) e `obiettivoPredefinito`, **`pesatiCrudi`** (pasta e riso: prima il crudo), passi penna, range statistiche, Open Food Facts, testi (premessa, **regole del calcolo mostrate nell'app**, avviso voce, avviso catalogo).
 
 ## js/core/ (base comune, core 1.0)
 | File | Funzioni principali |
@@ -36,7 +36,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | File | Funzioni principali | Usato da |
 |---|---|---|
 | `sicurezza.js` | `controlla` (limiti di config), `glicemia`, `grammi`, `dose`, `macro`, `ora`, `sottoSoglia`, `oltreMassimo`, `mancantiGenerali` (soglia ipo, dose max) | tutto |
-| `parametri.js` | `rapportoIC`, `mancanti`, `salva` (con **storico**), **`correzione`**, **`salvaCorrezione`** (fattore + obiettivo da/a), `storico` | Impostazioni → Rapporto insulina/carboidrati |
+| `parametri.js` | `rapportoIC`, `mancanti`, `salva` (con **storico**), **`obiettivo(id)`**, **`correzione(obiettivoId)`**, **`salvaCorrezione`** (fattore + obiettivo proposto), `storico` | Impostazioni → Rapporto insulina/carboidrati |
 | `nutrienti.js` | `per`, `voce` (copia i valori nel pasto), `aggiornaGrammi`, `totali` | pasto, modelli |
 | `alimenti.js` | `catalogo`, `tutti` (alfabetico), `trova`, `cerca` (punteggio, singolare/plurale, crudo prima per `pesatiCrudi`), `recentiDettaglio` (20 più recenti + ultima voce), `recenti`, `comeUltimaVolta`, **misure**: `misure`, `unita`, `pesoUnita`, `nomiUnita`, `testoQuantita`, `salvaPeso`; `salva`, `elimina` (catalogo = nascosto), `ripristina`, `perCodice` | Archivio, ricerca cibi, voce, scanner |
 | `modelli.js` | `tutti`, `salva`, `elimina`, `vociDa`, `carboidrati` | Archivio → Modelli, pulsante 📋 Modello |
@@ -66,7 +66,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `ui-comune.js` | chip glicemia e dose, campi numerici, `errore`, nomi di pasti/attività/umori |
 | `ui-giorno.js` | scheda **Diario**: navigazione tra i giorni, avviso parametri mancanti, insulina attiva adesso, **stato d'animo del giorno**, sei pasti (con chip 🧈 pasto grasso) |
 | `ui-giorno-extra.js` | nel Diario: **Attività (con intensità), Boli extra, Ipoglicemie, Note** e le loro finestre; `finestraBolo` usata anche per la dose aggiuntiva del pasto grasso |
-| `ui-pasto.js` | finestra del **pasto** (ora, glicemia, **🔁 sposta in un altro pasto** con `scegliPasto`, cibi, dose, note, salva/elimina/scarta bozza) |
+| `ui-pasto.js` | finestra del **pasto** (ora, glicemia, **🎯 menu obiettivo glicemia**, **🔁 sposta in un altro pasto** con `scegliPasto`, cibi, dose, note, salva/elimina/scarta bozza) |
 | `ui-calcolo.js` | riquadro **Dose** nel pasto (passaggi, dose suggerita, avvisi, informazioni, **riquadro 🧈 pasto grasso** con pulsante "Registra la dose aggiuntiva", "Come si calcola") |
 | `ui-pasto-cibi.js` | pulsanti **🔍 Cerca** (ricerca + **🌐 prodotti in commercio** + 20 recenti con "＋ come l'ultima volta"), finestra **"Quanto ne mangi?"** con unità di misura e peso della misura, **📋 Modello** |
 | `ui-voce.js` | pulsante **🎤 Voce** (consenso, microfono, frase scritta, conferma cibi) |

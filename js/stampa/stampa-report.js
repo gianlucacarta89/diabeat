@@ -45,8 +45,9 @@ App.StampaReport = {
     y = B.titoloSezione(doc, y, 'Insulina e parametri attuali');
     y = B.testo(doc, y, 'Rapida: ' + imp.insulinaRapida.nome + ', passo penna ' + U.dec(imp.insulinaRapida.passo) + ' U. ' +
       'Rapporto insulina/carboidrati: ' + v(imp.rapportoIC, 1, ' g per 1 U') + ' (unico per la giornata). ' +
-      (imp.fattoreCorrezione != null && imp.obiettivo != null
-        ? 'Correzione: 1 U ogni ' + U.dec(imp.fattoreCorrezione) + ' mg/dL, obiettivo ' + U.dec(imp.obiettivo) + (imp.obiettivoAlto != null ? '-' + U.dec(imp.obiettivoAlto) : '') + ' mg/dL (correzione solo fuori obiettivo). '
+      (imp.fattoreCorrezione != null
+        ? 'Correzione: 1 U ogni ' + U.dec(imp.fattoreCorrezione) + ' mg/dL, solo fuori dall\'obiettivo scelto per il pasto (' +
+          App.Config.obiettiviGlicemia.map(function (o) { return o.nome + ' ' + o.nota; }).join('; ') + ' mg/dL). '
         : 'Nessuna correzione automatica per la glicemia. ') +
       'Soglia ipoglicemia: ' + v(imp.sogliaIpo, 0, ' mg/dL') + '. Dose massima per bolo: ' + v(imp.doseMax, 1, ' U') + '.');
     y = B.tabella(doc, y, ['Pasto', 'Glicemia media (mg/dL)', 'Misure'],
@@ -81,7 +82,7 @@ App.StampaReport = {
         if (x.note) cibi += (cibi ? '\n' : '') + 'Note: ' + x.note;
         var dose = x.dose == null ? '-' : U.dec(x.dose);
         if (x.suggerita != null && x.dose != null && x.suggerita !== x.dose) dose += '\n(sugg. ' + U.dec(x.suggerita) + ')';
-        righe.push([data, p.nome, x.ora, x.glicemia == null ? '-' : String(x.glicemia), cibi || '-', U.dec(tot.carb, 0), dose]);
+        righe.push([data, p.nome, x.ora, (x.glicemia == null ? '-' : String(x.glicemia)) + (x.obiettivo ? '\nob. ' + App.Parametri.obiettivo(x.obiettivo).nome : ''), cibi || '-', U.dec(tot.carb, 0), dose]);
       });
       (g.boliExtra || []).forEach(function (b) {
         righe.push([data, 'Bolo extra', b.ora, b.glicemia == null ? '-' : String(b.glicemia), b.note || '', '-', U.dec(b.dose)]);

@@ -2,7 +2,7 @@
    servizi/calcolo-bolo.js
    Calcolo della dose suggerita per un pasto, passo per passo.
    Carboidrati ÷ rapporto insulina/carboidrati; dalla v1.10, se
-   impostati fattore di correzione e obiettivo (un intervallo, es. 110-140):
+   impostato il fattore di correzione, con l'obiettivo scelto nel pasto (es. 110-130):
    sopra → + (glicemia − limite alto) ÷ fattore; sotto → − (limite basso −
    glicemia) ÷ fattore; dentro → nessuna correzione. Le regole sono scritte anche in
    App.Config.testi.regoleCalcolo e mostrate nell'app: se cambi una
@@ -14,7 +14,7 @@
 window.App = window.App || {};
 
 App.CalcoloBolo = {
-  /* dati: { data, pastoId, ora, glicemia, voci }
+  /* dati: { data, pastoId, ora, glicemia, voci, obiettivo (id dell'obiettivo glicemico) }
      Restituisce:
      { stato: 'ok' | 'mancano' | 'ipo' | 'vuoto', mancanti: [], righe: [{etichetta, valore, nota}],
        esatta, suggerita, avvisi: [], info: [], totali, grasso } */
@@ -49,7 +49,7 @@ App.CalcoloBolo = {
     }
 
     // 5. Correzione con la glicemia (facoltativa).
-    var corr = App.Parametri.correzione();
+    var corr = App.Parametri.correzione(dati.obiettivo);
     if (corr && dati.glicemia != null) {
       var rif = dati.glicemia > corr.alto ? corr.alto : dati.glicemia < corr.basso ? corr.basso : null;
       var c = rif == null ? 0 : (dati.glicemia - rif) / corr.fattore;

@@ -8,7 +8,7 @@ window.App = window.App || {};
 
 App.Config = {
   nome: 'DiabEat',
-  versione: '1.10.1',
+  versione: '1.11',
   // Nome dello spazio di salvataggio: deve essere diverso per ogni app.
   // NON cambiarlo: è quello della prima versione, cambiarlo farebbe sparire i dati salvati.
   nomeArchivio: 'diario-insulina-gc',
@@ -105,6 +105,14 @@ App.Config = {
     campi: 'product_name,product_name_it,brands,nutriments,serving_quantity,serving_size'
   },
 
+  // Obiettivi della glicemia per la correzione, scelti pasto per pasto (menu nella finestra del pasto).
+  obiettiviGlicemia: [
+    { id: 'riposo',  da: 90,  a: 110, nome: '90-110',  nota: 'giornata tranquilla, a riposo' },
+    { id: 'normale', da: 110, a: 130, nome: '110-130', nota: 'giornata normale' },
+    { id: 'sport',   da: 130, a: 160, nome: '130-160', nota: 'allenamento o partita in arrivo' }
+  ],
+  obiettivoPredefinito: 'normale',
+
   // Cibi che pesi crudi: se scrivi o dici solo "pasta" o "riso", la ricerca propone prima la versione cruda.
   pesatiCrudi: ['pasta', 'riso'],
 
@@ -116,7 +124,7 @@ App.Config = {
               'È un aiuto al calcolo: la decisione sulla dose resta tua.',
     regoleCalcolo: [
       'Dose suggerita = carboidrati del pasto ÷ rapporto insulina/carboidrati (uno solo per tutta la giornata).',
-      'Correzione con la glicemia (solo se imposti fattore di correzione e obiettivo): dentro l\'obiettivo nessuna correzione; sopra: (glicemia − limite alto) ÷ fattore in più; sotto: (limite basso − glicemia) ÷ fattore in meno. La dose non scende sotto 0.',
+      'Correzione con la glicemia (solo se imposti il fattore di correzione): l\'obiettivo si sceglie in ogni pasto (90-110, 110-130, 130-160). Dentro l\'obiettivo nessuna correzione; sopra: (glicemia − limite alto) ÷ fattore in più; sotto: (limite basso − glicemia) ÷ fattore in meno. La dose non scende sotto 0.',
       'Se imposti la durata d\'azione, l\'insulina ancora attiva si toglie solo dalla correzione in aumento (per non sommare due correzioni).',
       'Il risultato si arrotonda al passo della penna.',
       'Glicemia sotto la soglia di ipoglicemia: nessuna dose suggerita.',

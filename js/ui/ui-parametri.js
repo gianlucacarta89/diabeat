@@ -19,11 +19,13 @@ App.UIParametri = {
         { classe: 'grande', aiuto: 'Uno solo per tutta la giornata. Dose suggerita = carboidrati ÷ questo valore.' }) +
       '<button class="btn btn-verde btn-pieno" style="margin-top:10px" data-az="salva">💾 Salva rapporto</button>' +
       '<h3 style="margin:18px 0 4px">🎯 Correzione con la glicemia <small class="tenue">(facoltativa)</small></h3>' +
-      '<p class="aiuto" style="margin-top:0">Se li imposti, la dose del pasto si corregge in base alla glicemia: dentro l\'obiettivo nessuna correzione; sopra aggiunge (glicemia − limite alto) ÷ fattore; sotto toglie (limite basso − glicemia) ÷ fattore. Concorda i valori con la tua diabetologa. Lasciali vuoti per non usarla.</p>' +
+      '<p class="aiuto" style="margin-top:0">Se imposti il fattore, la dose del pasto si corregge in base alla glicemia. L\'obiettivo lo scegli in ogni pasto: dentro l\'obiettivo nessuna correzione; sopra aggiunge (glicemia − limite alto) ÷ fattore; sotto toglie (limite basso − glicemia) ÷ fattore. Concorda i valori con la tua diabetologa. Lascia vuoto il fattore per non usarla.</p>' +
       UC.campo('par-fc', 'Fattore di correzione', App.Stato.imp().fattoreCorrezione, 'mg/dL per 1 U', { aiuto: '1 unità abbassa la glicemia di… (es. 30)' }) +
-      '<div class="griglia-2"><div>' + UC.campo('par-ob', 'Obiettivo da', App.Stato.imp().obiettivo, 'mg/dL') + '</div>' +
-      '<div>' + UC.campo('par-ob2', 'Obiettivo a', App.Stato.imp().obiettivoAlto, 'mg/dL') + '</div></div>' +
-      '<p class="aiuto" style="margin-top:2px">Es. da 110 a 140. Per un valore unico lascia vuoto "a".</p>' +
+      '<label for="par-ob">Obiettivo proposto nei pasti</label><select id="par-ob">' +
+        App.Config.obiettiviGlicemia.map(function (o) {
+          return '<option value="' + o.id + '"' + (o.id === App.Parametri.obiettivo().id ? ' selected' : '') + '>' + U.esc(o.nome + ' mg/dL · ' + o.nota) + '</option>';
+        }).join('') + '</select>' +
+      '<p class="aiuto" style="margin-top:2px">Nel pasto puoi sempre cambiarlo dal menu 🎯.</p>' +
       '<button class="btn btn-verde btn-pieno" style="margin-top:10px" data-az="salvaCorr">💾 Salva correzione</button>' +
       '<details style="margin-top:12px"><summary class="tenue" style="cursor:pointer">📜 Storico delle modifiche</summary><div id="par-storico"></div></details>' +
     '</div>');
@@ -36,7 +38,7 @@ App.UIParametri = {
     };
 
     card.querySelector('[data-az=salvaCorr]').onclick = function () {
-      var e = App.Parametri.salvaCorrezione(UC.num(card, '#par-fc'), UC.num(card, '#par-ob'), UC.num(card, '#par-ob2'));
+      var e = App.Parametri.salvaCorrezione(UC.num(card, '#par-fc'), card.querySelector('#par-ob').value);
       if (e) return UC.errore(card, '#par-fc', e);
       App.Avvisi.toast(App.Parametri.correzione() ? 'Correzione salvata' : 'Correzione disattivata', 'ok');
       card.replaceWith(self.crea());
@@ -45,7 +47,11 @@ App.UIParametri = {
     var st = card.querySelector('#par-storico');
     var storico = App.Parametri.storico().slice().reverse();
     if (!storico.length) st.innerHTML = '<p class="tenue">Nessuna modifica registrata.</p>';
-    var fmtC = function (x) { return !x || x.fattore == null ? 'nessuna' : '1 U = ' + U.dec(x.fattore) + ' mg/dL, obiettivo ' + U.dec(x.obiettivo) + (x.obiettivoAlto != null ? '-' + U.dec(x.obiettivoAlto) : ''); };
+    var fmtC = function (x) {
+      if (!x || x.fattore == null) return 'nessuna';
+      var ob = x.predefinito ? App.Parametri.obiettivo(x.predefinito).nome : U.dec(x.obiettivo) + (x.obiettivoAlto != null ? '-' + U.dec(x.obiettivoAlto) : '');
+      return '1 U = ' + U.dec(x.fattore) + ' mg/dL, obiettivo ' + ob;
+    };
     var fmt = function (x) { return x == null ? '–' : U.dec(x) + ' g/U'; };
     storico.slice(0, 40).forEach(function (s) {
       var d = new Date(s.quando);
