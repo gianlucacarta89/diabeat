@@ -92,8 +92,8 @@ App.UIPastoCibi = {
       pulsanteOnline(testo);
       var lista;
       if (!testo) {
-        // I 20 cibi inseriti più di recente: "＋" li aggiunge subito con la quantità dell'ultima volta.
-        var recenti = App.Alimenti.recentiDettaglio(60, 20);
+        // I 50 cibi inseriti più di recente: "＋" li aggiunge subito con la quantità dell'ultima volta.
+        var recenti = App.Alimenti.recentiDettaglio(60, 50);
         ul.appendChild(U.el('<li class="tenue"><small>' + (recenti.length
           ? 'Inseriti di recente: tocca il pulsante per rimetterlo uguale all\'ultima volta, o il nome per cambiare quantità'
           : 'Scrivi il nome del cibo') + '</small></li>'));

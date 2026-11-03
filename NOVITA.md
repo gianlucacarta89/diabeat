@@ -1,5 +1,10 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.11.2 — 03/11/2026
+- **Cibi recenti:** nella ricerca a campo vuoto ora compaiono gli ultimi **50** cibi diversi (prima 20), presi dai pasti degli ultimi 60 giorni.
+
+File: js/ui/ui-pasto-cibi.js, js/config.js, sw.js, MAPPA.md.
+
 ## v1.11.1 — 02/11/2026
 - **Dose suggerita anche in ipoglicemia:** con la glicemia sotto la soglia la dose si calcola comunque (la correzione, se attiva, la riduce) e sopra compare un avviso rosso "⚠️ Ipoglicemia". La decisione resta tua.
 
