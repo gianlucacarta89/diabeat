@@ -1,5 +1,11 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.12.3 — 06/11/2026
+- **Prodotti non trovati:** Open Food Facts risponde "404" quando un codice non è nel database e l'app lo scambiava per un problema di connessione. Ora dice chiaramente "prodotto non presente" e mostra il **codice letto**, così si vede anche se la lettura era sbagliata. Se il server non risponde, riprova da sola una volta.
+- **Messa a fuoco:** su molti Android (es. Samsung) la "fotocamera posteriore" predefinita è il grandangolo, che da vicino non mette a fuoco. Ora l'app sceglie la fotocamera principale, usa un leggero zoom (si tiene il telefono a 15-25 cm, dove il fuoco funziona), rimette a fuoco se tocchi l'immagine, e c'è il pulsante **🔄 Cambia fotocamera** (la scelta viene ricordata).
+
+File: js/servizi/open-food-facts.js, js/ui/ui-scanner.js, js/config.js, sw.js, MAPPA.md.
+
 ## v1.12.2 — 06/11/2026
 - **Modelli di pasto:** accanto a "🔍 Cerca" c'è **📷 Codice** per aggiungere un cibo al modello con il codice a barre (stesso lettore del pasto: se il prodotto è nuovo lo salva in archivio, poi chiede la quantità).
 

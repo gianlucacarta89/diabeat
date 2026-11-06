@@ -125,50 +125,106 @@ App.UIScanner = {
     this.avviaLibreria(corpo, pronto, accetta);
   },
 
+  // Fotocamera scelta l'ultima volta (se l'hai cambiata con il pulsante).
+  _camScelta: function (v) {
+    try { if (v === undefined) return localStorage.getItem('diabeat-fotocamera') || ''; localStorage.setItem('diabeat-fotocamera', v); } catch (e) { return ''; }
+  },
+
+  /* Fotocamere posteriori, la principale per prima. Su molti Android (es. Samsung)
+     "fotocamera posteriore" apre il grandangolo, che non mette a fuoco da vicino:
+     la principale di solito è "camera2 0" / "camera 0". */
+  _posteriori: function () {
+    return navigator.mediaDevices.enumerateDevices().then(function (d) {
+      var cam = d.filter(function (x) { return x.kind === 'videoinput'; });
+      var dietro = cam.filter(function (x) { return /back|rear|posterior|environment|retro/i.test(x.label); });
+      if (!dietro.length) dietro = cam;
+      var peso = function (x) { return /\b0\b/.test(x.label) ? 0 : /wide|ultra|tele|grandang/i.test(x.label) ? 2 : 1; };
+      return dietro.slice().sort(function (a, b) { return peso(a) - peso(b); });
+    });
+  },
+
   avviaNativo: function (corpo, pronto, accetta, rilevatore) {
-    var stato = corpo.querySelector('#s-stato'), box = corpo.querySelector('#lettore-codici');
+    var self = this, stato = corpo.querySelector('#s-stato'), box = corpo.querySelector('#lettore-codici');
     box.innerHTML = '<div style="position:relative;border-radius:14px;overflow:hidden;background:#000">' +
       '<video playsinline muted style="display:block;width:100%;max-height:46vh;object-fit:cover"></video>' +
       '<div style="position:absolute;left:8%;right:8%;top:50%;height:2px;background:#e53935;box-shadow:0 0 6px #e53935"></div>' +
-      '<button class="btn btn-piccolo nascosto" data-az="luce" style="position:absolute;right:8px;bottom:8px">🔦 Luce</button></div>';
-    var video = box.querySelector('video'), flusso = null, attivo = true, timer = null;
-    var fermo = {
-      stop: function () {
-        attivo = false; clearTimeout(timer);
-        if (flusso) flusso.getTracks().forEach(function (t) { t.stop(); });
-        return Promise.resolve();
-      }
-    };
-    navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
-    }).then(function (s) {
-      flusso = s;
-      if (!attivo) { fermo.stop(); return; }
-      video.srcObject = s;
-      var traccia = s.getVideoTracks()[0], cap = traccia.getCapabilities ? traccia.getCapabilities() : {};
-      // Messa a fuoco continua, dove il telefono lo permette.
-      if (cap.focusMode && cap.focusMode.indexOf('continuous') >= 0) traccia.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(function () {});
-      if (cap.torch) {
-        var luce = box.querySelector('[data-az=luce]'), acceso = false;
-        luce.classList.remove('nascosto');
-        luce.onclick = function () { acceso = !acceso; traccia.applyConstraints({ advanced: [{ torch: acceso }] }).catch(function () {}); };
-      }
-      return video.play().then(function () {
-        pronto(fermo);
-        stato.textContent = 'Inquadra il codice a barre sulla linea rossa, a 10-20 cm.';
-        var giro = function () {
-          if (!attivo) return;
-          rilevatore.detect(video).then(function (codici) {
-            (codici || []).forEach(function (c) { accetta(c.rawValue); });
-          }).catch(function () {}).then(function () { if (attivo) timer = setTimeout(giro, 120); });
-        };
-        giro();
-      });
-    }).catch(function () {
+      '<div style="position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:6px;justify-content:flex-end">' +
+        '<button class="btn btn-piccolo nascosto" data-az="cam">🔄 Cambia fotocamera</button>' +
+        '<button class="btn btn-piccolo nascosto" data-az="luce">🔦 Luce</button></div></div>';
+    var video = box.querySelector('video'), flusso = null, attivo = true, timer = null, avviato = false;
+    var elenco = [], indice = 0;
+    var spegni = function () { if (flusso) flusso.getTracks().forEach(function (t) { t.stop(); }); flusso = null; };
+    var fermo = { stop: function () { attivo = false; clearTimeout(timer); spegni(); return Promise.resolve(); } };
+    var errore = function () {
       box.classList.add('nascosto');
       stato.textContent = 'Non riesco ad aprire la fotocamera (permesso negato o non disponibile). Scrivi il codice qui sotto.';
-    });
+    };
+    var giro = function () {
+      if (!attivo) return;
+      rilevatore.detect(video).then(function (codici) {
+        (codici || []).forEach(function (c) { accetta(c.rawValue); });
+      }).catch(function () {}).then(function () { if (attivo) timer = setTimeout(giro, 100); });
+    };
+    var regola = function (traccia) {
+      var cap = traccia.getCapabilities ? traccia.getCapabilities() : {}, extra = {};
+      if (cap.focusMode && cap.focusMode.indexOf('continuous') >= 0) extra.focusMode = 'continuous';
+      // Un po' di zoom: si tiene il telefono più lontano, dove mette a fuoco meglio.
+      if (cap.zoom && cap.zoom.max >= 1.5) extra.zoom = Math.min(2, cap.zoom.max);
+      if (Object.keys(extra).length) traccia.applyConstraints({ advanced: [extra] }).catch(function () {});
+      var luce = box.querySelector('[data-az=luce]');
+      if (cap.torch) {
+        var acceso = false;
+        luce.classList.remove('nascosto');
+        luce.onclick = function () { acceso = !acceso; traccia.applyConstraints({ advanced: [{ torch: acceso }] }).catch(function () {}); };
+      } else luce.classList.add('nascosto');
+      // Tocca l'immagine per rimettere a fuoco.
+      video.onclick = function () {
+        if (!cap.focusMode) return;
+        var m = cap.focusMode.indexOf('single-shot') >= 0 ? 'single-shot' : 'continuous';
+        traccia.applyConstraints({ advanced: [{ focusMode: m }] }).then(function () {
+          if (m !== 'continuous' && cap.focusMode.indexOf('continuous') >= 0) setTimeout(function () { traccia.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(function () {}); }, 1200);
+        }).catch(function () {});
+      };
+    };
+    var apri = function (deviceId) {
+      spegni();
+      var v = { width: { ideal: 1280 }, height: { ideal: 720 } };
+      if (deviceId) v.deviceId = { exact: deviceId }; else v.facingMode = { ideal: 'environment' };
+      return navigator.mediaDevices.getUserMedia({ audio: false, video: v }).then(function (s) {
+        flusso = s;
+        if (!attivo) { spegni(); return; }
+        video.srcObject = s;
+        regola(s.getVideoTracks()[0]);
+        return video.play();
+      });
+    };
+    var parti = function () {
+      if (avviato || !attivo) return;
+      avviato = true; pronto(fermo);
+      stato.textContent = 'Codice sulla linea rossa, telefono a 15-25 cm. Se è sfocato tocca l\'immagine o "Cambia fotocamera".';
+      giro();
+    };
+    // 1) apre la posteriore; 2) se c'è, passa alla principale (o a quella scelta l'ultima volta).
+    apri(null).then(function () {
+      if (!attivo) return;
+      return self._posteriori().then(function (lista) {
+        elenco = lista;
+        var attuale = flusso && flusso.getVideoTracks()[0].getSettings ? flusso.getVideoTracks()[0].getSettings().deviceId : '';
+        var scelta = self._camScelta();
+        var meglio = (scelta && lista.filter(function (x) { return x.deviceId === scelta; })[0]) || lista[0];
+        if (lista.length > 1) {
+          var bc = box.querySelector('[data-az=cam]');
+          bc.classList.remove('nascosto');
+          bc.onclick = function () {
+            indice = (indice + 1) % elenco.length;
+            self._camScelta(elenco[indice].deviceId);
+            apri(elenco[indice].deviceId).catch(function () {});
+          };
+        }
+        indice = Math.max(0, lista.indexOf(meglio));
+        if (meglio && meglio.deviceId && meglio.deviceId !== attuale) return apri(meglio.deviceId).catch(function () { return apri(null); });
+      });
+    }).then(parti, function () { if (flusso) parti(); else errore(); });
   },
 
   avviaLibreria: function (corpo, pronto, accetta) {
@@ -187,7 +243,7 @@ App.UIScanner = {
       fps: 15,
       // Riquadro largo e basso, in proporzione allo schermo.
       qrbox: function (w, h) { return { width: Math.floor(w * 0.9), height: Math.max(80, Math.floor(Math.min(h, w) * 0.4)) }; },
-      videoConstraints: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+      videoConstraints: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 }, advanced: [{ focusMode: 'continuous' }] }
     }, function (testo) { accetta(testo); }, function () { /* nessun codice in questo fotogramma */ })
       .then(function () { pronto(lettore); })
       .catch(function () {

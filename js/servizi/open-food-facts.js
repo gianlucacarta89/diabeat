@@ -43,7 +43,8 @@ App.OpenFoodFacts = {
     var ctrl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, ms || 15000);
     return fetch(url, ctrl ? { signal: ctrl.signal } : {})
-      .then(function (r) { clearTimeout(timer); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); },
+      // 404 = prodotto non presente (la risposta è comunque JSON): non è un errore di rete.
+      .then(function (r) { clearTimeout(timer); if (!r.ok && r.status !== 404) throw new Error('HTTP ' + r.status); return r.json().catch(function () { if (r.status === 404) return { status: 0 }; throw new Error('risposta non valida'); }); },
             function (e) { clearTimeout(timer); throw e; });
   },
 
@@ -56,15 +57,19 @@ App.OpenFoodFacts = {
     if (navigator.onLine === false) {
       return Promise.resolve({ trovato: false, errore: 'Sei offline: collegati a internet e riprova, oppure inserisci i valori a mano.' });
     }
-    return this._fetch(C.url + encodeURIComponent(codice) + '.json?fields=' + C.campi)
+    var url = C.url + encodeURIComponent(codice) + '.json?fields=' + C.campi;
+    // Un secondo tentativo dopo 1,5 secondi se il server non risponde.
+    return this._fetch(url).catch(function () {
+      return new Promise(function (ok) { setTimeout(ok, 1500); }).then(function () { return self._fetch(url); });
+    })
       .then(function (j) {
         if (!j || j.status !== 1 || !j.product) {
-          return { trovato: false, codice: codice, errore: 'Prodotto non presente in Open Food Facts: inserisci i valori dall\'etichetta.' };
+          return { trovato: false, codice: codice, errore: 'Codice ' + codice + ': prodotto non presente in Open Food Facts. Se il codice è giusto, inserisci i valori dall\'etichetta (resterà nel tuo archivio).' };
         }
         return self.prodotto(j.product, codice);
       })
-      .catch(function () {
-        return { trovato: false, codice: codice, errore: 'Ricerca non riuscita: controlla la connessione e riprova, oppure inserisci i valori a mano.' };
+      .catch(function (e) {
+        return { trovato: false, codice: codice, errore: 'Codice ' + codice + ': ricerca non riuscita (' + ((e && e.name === 'AbortError') ? 'il server non risponde' : (e && e.message) || 'errore di rete') + '). Riprova o inserisci i valori a mano.' };
       });
   },
 

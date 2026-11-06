@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.12.2
+# MAPPA — DiabEat v1.12.3
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -70,7 +70,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `ui-calcolo.js` | riquadro **Dose** nel pasto (passaggi, dose suggerita, avvisi, informazioni, **riquadro 🧈 pasto grasso** con pulsante "Registra la dose aggiuntiva", "Come si calcola") |
 | `ui-pasto-cibi.js` | pulsanti **🔍 Cerca** (ricerca + **🌐 prodotti in commercio** + 50 recenti con "＋ come l'ultima volta"), finestra **"Quanto ne mangi?"** con unità di misura e peso della misura, **📋 Modello** |
 | `ui-voce.js` | pulsante **🎤 Voce** (consenso, microfono, frase scritta, conferma cibi) |
-| `ui-scanner.js` | pulsanti **📷 Codice** / **📷 Codice a barre**: `avviaNativo` (BarcodeDetector, alta risoluzione, fuoco continuo, 🔦 luce), `avviaLibreria` (html5-qrcode), `filtro` e `controlloOk` (cifra di controllo EAN); salva subito il prodotto trovato |
+| `ui-scanner.js` | pulsanti **📷 Codice** / **📷 Codice a barre**: `avviaNativo` (BarcodeDetector, fotocamera principale con `_posteriori`, zoom 2x, fuoco continuo e al tocco, 🔄 cambia fotocamera ricordata con `_camScelta`, 🔦 luce), `avviaLibreria` (html5-qrcode), `filtro` e `controlloOk` (cifra di controllo EAN); salva subito il prodotto trovato |
 | `ui-alimento-form.js` | finestra **Nuovo cibo / Modifica cibo / Controlla il prodotto** (con i pesi delle misure: cucchiaio, tazza, piatto, pezzo) |
 | `ui-archivio.js` | scheda **Archivio** → Cibi (ricerca, modifica, elimina, ripristina) |
 | `ui-modelli.js` | scheda **Archivio** → Modelli di pasto (cibi con 🔍 Cerca o 📷 Codice) |
