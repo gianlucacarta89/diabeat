@@ -1,7 +1,9 @@
 /* ============================================================
    ui/ui-scanner.js
-   Lettura del codice a barre con la fotocamera (libreria
-   html5-qrcode in lib/), oppure inserimento a mano del codice.
+   Lettura del codice a barre con la fotocamera: lettore del telefono
+   (BarcodeDetector, alta risoluzione, fuoco continuo, luce) oppure
+   libreria html5-qrcode in lib/; o inserimento a mano del codice.
+   Le letture si controllano con la cifra di controllo EAN.
    Se il prodotto è già in archivio lo restituisce subito;
    altrimenti lo cerca su Open Food Facts (serve internet) e, se ha
    tutti i valori, lo salva subito in archivio; se mancano valori
@@ -77,27 +79,116 @@ App.UIScanner = {
     self.avviaCamera(corpo, function (l) { lettore = l; if (chiuso) ferma(); }, gestisci);
   },
 
+  // Controllo della cifra finale dei codici EAN-13 / UPC-A (12-13 cifre): scarta le letture sbagliate.
+  controlloOk: function (c) {
+    if (!/^\d+$/.test(c)) return false;
+    if (c.length !== 12 && c.length !== 13) return true; // EAN-8 / UPC-E: si conferma con due letture uguali
+    var d = c.split('').map(Number), ultima = d.pop(), somma = 0;
+    d.reverse().forEach(function (x, i) { somma += x * (i % 2 === 0 ? 3 : 1); });
+    return (10 - (somma % 10)) % 10 === ultima;
+  },
+
+  /* Accetta un codice solo se il controllo è giusto; i codici corti (8 cifre)
+     solo dopo due letture uguali di fila. */
+  filtro: function (trovato) {
+    var self = this, ultimo = null, letto = false;
+    return function (testo) {
+      if (letto) return;
+      testo = String(testo || '').replace(/\D/g, '');
+      if (!App.OpenFoodFacts.codiceValido(testo) || !self.controlloOk(testo)) return;
+      if (testo.length < 12 && testo !== ultimo) { ultimo = testo; return; }
+      letto = true;
+      if (navigator.vibrate) { try { navigator.vibrate(80); } catch (e) { /* niente */ } }
+      trovato(testo);
+    };
+  },
+
   avviaCamera: function (corpo, pronto, trovato) {
     var stato = corpo.querySelector('#s-stato');
     var box = corpo.querySelector('#lettore-codici');
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      box.classList.add('nascosto');
+      stato.textContent = 'La fotocamera funziona solo con l\'app installata dal suo indirizzo (https). Intanto scrivi il codice qui sotto.';
+      return;
+    }
+    var accetta = this.filtro(trovato), self = this;
+    // 1) Lettore del telefono (Chrome su Android): veloce e preciso.
+    if ('BarcodeDetector' in window) {
+      window.BarcodeDetector.getSupportedFormats().then(function (f) {
+        var formati = ['ean_13', 'ean_8', 'upc_a', 'upc_e'].filter(function (x) { return f.indexOf(x) >= 0; });
+        if (!formati.length) return self.avviaLibreria(corpo, pronto, accetta);
+        self.avviaNativo(corpo, pronto, accetta, new window.BarcodeDetector({ formats: formati }));
+      }, function () { self.avviaLibreria(corpo, pronto, accetta); });
+      return;
+    }
+    // 2) Altrimenti la libreria html5-qrcode.
+    this.avviaLibreria(corpo, pronto, accetta);
+  },
+
+  avviaNativo: function (corpo, pronto, accetta, rilevatore) {
+    var stato = corpo.querySelector('#s-stato'), box = corpo.querySelector('#lettore-codici');
+    box.innerHTML = '<div style="position:relative;border-radius:14px;overflow:hidden;background:#000">' +
+      '<video playsinline muted style="display:block;width:100%;max-height:46vh;object-fit:cover"></video>' +
+      '<div style="position:absolute;left:8%;right:8%;top:50%;height:2px;background:#e53935;box-shadow:0 0 6px #e53935"></div>' +
+      '<button class="btn btn-piccolo nascosto" data-az="luce" style="position:absolute;right:8px;bottom:8px">🔦 Luce</button></div>';
+    var video = box.querySelector('video'), flusso = null, attivo = true, timer = null;
+    var fermo = {
+      stop: function () {
+        attivo = false; clearTimeout(timer);
+        if (flusso) flusso.getTracks().forEach(function (t) { t.stop(); });
+        return Promise.resolve();
+      }
+    };
+    navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+    }).then(function (s) {
+      flusso = s;
+      if (!attivo) { fermo.stop(); return; }
+      video.srcObject = s;
+      var traccia = s.getVideoTracks()[0], cap = traccia.getCapabilities ? traccia.getCapabilities() : {};
+      // Messa a fuoco continua, dove il telefono lo permette.
+      if (cap.focusMode && cap.focusMode.indexOf('continuous') >= 0) traccia.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(function () {});
+      if (cap.torch) {
+        var luce = box.querySelector('[data-az=luce]'), acceso = false;
+        luce.classList.remove('nascosto');
+        luce.onclick = function () { acceso = !acceso; traccia.applyConstraints({ advanced: [{ torch: acceso }] }).catch(function () {}); };
+      }
+      return video.play().then(function () {
+        pronto(fermo);
+        stato.textContent = 'Inquadra il codice a barre sulla linea rossa, a 10-20 cm.';
+        var giro = function () {
+          if (!attivo) return;
+          rilevatore.detect(video).then(function (codici) {
+            (codici || []).forEach(function (c) { accetta(c.rawValue); });
+          }).catch(function () {}).then(function () { if (attivo) timer = setTimeout(giro, 120); });
+        };
+        giro();
+      });
+    }).catch(function () {
+      box.classList.add('nascosto');
+      stato.textContent = 'Non riesco ad aprire la fotocamera (permesso negato o non disponibile). Scrivi il codice qui sotto.';
+    });
+  },
+
+  avviaLibreria: function (corpo, pronto, accetta) {
+    var stato = corpo.querySelector('#s-stato'), box = corpo.querySelector('#lettore-codici');
     if (!window.Html5Qrcode) {
       box.classList.add('nascosto');
       stato.textContent = 'Lettore non disponibile: scrivi il codice qui sotto.';
       return;
     }
-    if (!window.isSecureContext || !navigator.mediaDevices) {
-      box.classList.add('nascosto');
-      stato.textContent = 'La fotocamera funziona solo con l\'app installata dal suo indirizzo (https). Intanto scrivi il codice qui sotto.';
-      return;
-    }
     var F = window.Html5QrcodeSupportedFormats;
     var lettore = new window.Html5Qrcode('lettore-codici', {
       formatsToSupport: [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E],
-      useBarCodeDetectorIfSupported: true, verbose: false
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true }, verbose: false
     });
-    var letto = false;
-    lettore.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 260, height: 120 } },
-      function (testo) { if (!letto) { letto = true; trovato(testo); } }, function () { /* nessun codice in questo fotogramma */ })
+    lettore.start({ facingMode: 'environment' }, {
+      fps: 15,
+      // Riquadro largo e basso, in proporzione allo schermo.
+      qrbox: function (w, h) { return { width: Math.floor(w * 0.9), height: Math.max(80, Math.floor(Math.min(h, w) * 0.4)) }; },
+      videoConstraints: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+    }, function (testo) { accetta(testo); }, function () { /* nessun codice in questo fotogramma */ })
       .then(function () { pronto(lettore); })
       .catch(function () {
         box.classList.add('nascosto');

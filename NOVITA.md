@@ -1,5 +1,12 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.12 — 06/11/2026
+- **Lettore del codice a barre molto più efficace:** usa il lettore integrato nel telefono (Chrome su Android) con la fotocamera in alta risoluzione e la messa a fuoco continua, invece della libreria più lenta. Linea rossa di riferimento, pulsante **🔦 Luce** dove il telefono lo permette, vibrazione quando legge.
+- Ogni lettura è controllata con la cifra di controllo del codice: niente codici letti male.
+- Sui telefoni senza lettore integrato resta la libreria, ora con il riquadro più grande, più fotogrammi al secondo e la risoluzione alta (prima un'impostazione era scritta male e il lettore integrato non veniva mai usato).
+
+File: js/ui/ui-scanner.js, js/config.js, sw.js, MAPPA.md.
+
 ## v1.11.2 — 03/11/2026
 - **Cibi recenti:** nella ricerca a campo vuoto ora compaiono gli ultimi **50** cibi diversi (prima 20), presi dai pasti degli ultimi 60 giorni.
 
