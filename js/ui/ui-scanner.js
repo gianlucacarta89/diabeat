@@ -10,7 +10,7 @@
    apre il modulo per completarli dall'etichetta.
    Dipende da: App.Alimenti, App.OpenFoodFacts, App.UIAlimentoForm,
                App.Avvisi, App.UIComune, App.Utils, libreria Html5Qrcode.
-   Usato da: ui/ui-pasto.js, ui/ui-archivio.js.
+   Usato da: ui/ui-pasto.js, ui/ui-archivio.js, ui/ui-modelli.js.
    ============================================================ */
 window.App = window.App || {};
 

@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.12.1
+# MAPPA — DiabEat v1.12.2
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -73,7 +73,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `ui-scanner.js` | pulsanti **📷 Codice** / **📷 Codice a barre**: `avviaNativo` (BarcodeDetector, alta risoluzione, fuoco continuo, 🔦 luce), `avviaLibreria` (html5-qrcode), `filtro` e `controlloOk` (cifra di controllo EAN); salva subito il prodotto trovato |
 | `ui-alimento-form.js` | finestra **Nuovo cibo / Modifica cibo / Controlla il prodotto** (con i pesi delle misure: cucchiaio, tazza, piatto, pezzo) |
 | `ui-archivio.js` | scheda **Archivio** → Cibi (ricerca, modifica, elimina, ripristina) |
-| `ui-modelli.js` | scheda **Archivio** → Modelli di pasto |
+| `ui-modelli.js` | scheda **Archivio** → Modelli di pasto (cibi con 🔍 Cerca o 📷 Codice) |
 | `ui-statistiche.js` | scheda **Statistiche**; `cardReport` (report per la diabetologa: 7/14/30 giorni, nome, scarica/invia) |
 | `ui-impostazioni.js` | scheda **Impostazioni**: Rapporto I/C, Insulina rapida, Sicurezza, Attività, Dati e backup, Cancella diario, **Versione / Aggiorna app**, voce |
 | `ui-parametri.js` | Impostazioni → **Rapporto insulina/carboidrati**, **🎯 Correzione con la glicemia** (+ storico) |

@@ -1,5 +1,10 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.12.2 — 06/11/2026
+- **Modelli di pasto:** accanto a "🔍 Cerca" c'è **📷 Codice** per aggiungere un cibo al modello con il codice a barre (stesso lettore del pasto: se il prodotto è nuovo lo salva in archivio, poi chiede la quantità).
+
+File: js/ui/ui-modelli.js, js/config.js, sw.js, MAPPA.md.
+
 ## v1.12.1 — 06/11/2026
 - **🔄 Cerca aggiornamenti** in fondo a ogni pagina, sotto la versione: controlla la versione pubblicata; se è nuova aggiorna subito, altrimenti dice "Hai già l'ultima versione".
 

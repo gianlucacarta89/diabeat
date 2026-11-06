@@ -2,7 +2,7 @@
    ui/ui-modelli.js
    Modelli di pasto: elenco, creazione e modifica (nome, pasto
    abituale, cibi con i grammi).
-   Dipende da: App.Modelli, App.Nutrienti, App.UIPastoCibi, App.UIComune,
+   Dipende da: App.Modelli, App.Nutrienti, App.UIPastoCibi, App.UIScanner, App.UIComune,
                App.Config, App.Avvisi, App.Nav, App.Utils.
    Usato da: ui/ui-archivio.js.
    ============================================================ */
@@ -43,7 +43,9 @@ App.UIModelli = {
     var corpo = U.el('<div>' +
       '<label for="m-nome">Nome del modello</label><input id="m-nome" value="' + U.esc(m ? m.nome : '') + '" placeholder="es. Colazione scuola">' +
       '<label for="m-pasto">Pasto abituale</label><select id="m-pasto">' + pasti + '</select>' +
-      '<div class="sezione"><h2>Cibi</h2><button class="btn btn-piccolo" data-az="agg">🔍 Aggiungi</button></div>' +
+      '<div class="sezione"><h2>Cibi</h2><div class="riga" style="gap:6px">' +
+        '<button class="btn btn-piccolo" data-az="agg">🔍 Cerca</button>' +
+        '<button class="btn btn-piccolo" data-az="codice">📷 Codice</button></div></div>' +
       '<div class="card"><ul class="elenco" id="m-voci"></ul></div>' +
       '<p class="centro forte" id="m-tot"></p>' +
     '</div>');
@@ -65,6 +67,11 @@ App.UIModelli = {
         ul.appendChild(li);
       });
       corpo.querySelector('#m-tot').textContent = 'Totale: ' + U.dec(App.Nutrienti.totali(voci).carb) + ' g di carboidrati';
+    };
+    corpo.querySelector('[data-az=codice]').onclick = function () {
+      App.UIScanner.apri(function (alimento) {
+        App.UIPastoCibi.chiediGrammi(alimento, function (v) { voci.push(v); disegnaVoci(); });
+      });
     };
     corpo.querySelector('[data-az=agg]').onclick = function () {
       App.UIPastoCibi.cerca(function (nuove) { voci = voci.concat(nuove); disegnaVoci(); });
