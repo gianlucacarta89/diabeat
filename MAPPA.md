@@ -1,4 +1,4 @@
-# MAPPA — DiabEat v1.12
+# MAPPA — DiabEat v1.12.1
 
 Indice per modifiche chirurgiche: cerca qui il file giusto, poi apri solo quello.
 
@@ -62,7 +62,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 ## js/ui/ (un file per schermata o finestra)
 | File | Schermata / pulsante |
 |---|---|
-| `navigazione.js` | testata, barra in basso (Diario · Archivio · Statistiche · Impostazioni), piè di pagina con versione |
+| `navigazione.js` | testata, barra in basso (Diario · Archivio · Statistiche · Impostazioni), piè di pagina con versione e **🔄 Cerca aggiornamenti** |
 | `ui-comune.js` | chip glicemia e dose, campi numerici, `errore`, nomi di pasti/attività/umori |
 | `ui-giorno.js` | scheda **Diario**: navigazione tra i giorni, avviso parametri mancanti, insulina attiva adesso, **stato d'animo del giorno**, sei pasti (con chip 🧈 pasto grasso) |
 | `ui-giorno-extra.js` | nel Diario: **Attività (con intensità), Boli extra, Ipoglicemie, Note** e le loro finestre; `finestraBolo` usata anche per la dose aggiuntiva del pasto grasso |
@@ -80,7 +80,7 @@ Nome, versione, nome archivio, **pasti**, **unità di misura** (`unitaMisura`: g
 | `ui-attivita-umori.js` | Impostazioni → **Le tue attività** (solo nomi; il nome del file è quello della v1.0) |
 
 ## js/avvio.js
-Sempre l'ultimo: apre l'archivio, carica i dati, disegna, registra `sw.js` solo se aperta da https e ricarica la pagina quando è pronta una versione nuova; `App.aggiornaApp` (pulsante 🔄 Aggiorna app in Impostazioni).
+Sempre l'ultimo: apre l'archivio, carica i dati, disegna, registra `sw.js` solo se aperta da https e ricarica la pagina quando è pronta una versione nuova; `App.aggiornaApp` (pulsante 🔄 Aggiorna app in Impostazioni), `App.cercaAggiornamenti` (pulsante in fondo alla pagina: confronta la versione online).
 
 ## Dati salvati (chiavi dell'archivio)
 `impostazioni`, `alimenti` (personali e correzioni del catalogo), `modelli` → permanenti.

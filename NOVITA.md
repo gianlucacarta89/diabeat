@@ -1,5 +1,10 @@
 # NOVITÀ — DiabEat (ex Diario Insulina)
 
+## v1.12.1 — 06/11/2026
+- **🔄 Cerca aggiornamenti** in fondo a ogni pagina, sotto la versione: controlla la versione pubblicata; se è nuova aggiorna subito, altrimenti dice "Hai già l'ultima versione".
+
+File: js/ui/navigazione.js, js/avvio.js, js/config.js, sw.js, MAPPA.md.
+
 ## v1.12 — 06/11/2026
 - **Lettore del codice a barre molto più efficace:** usa il lettore integrato nel telefono (Chrome su Android) con la fotocamera in alta risoluzione e la messa a fuoco continua, invece della libreria più lenta. Linea rossa di riferimento, pulsante **🔦 Luce** dove il telefono lo permette, vibrazione quando legge.
 - Ogni lettura è controllata con la cifra di controllo del codice: niente codici letti male.

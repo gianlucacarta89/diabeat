@@ -57,4 +57,21 @@ App.aggiornaApp = function () {
   Promise.all(passi).then(fatto, fatto);
 };
 
+/* Pulsante "Cerca aggiornamenti" in fondo alla pagina: legge la versione
+   pubblicata sul sito; se è diversa aggiorna, altrimenti lo dice. */
+App.cercaAggiornamenti = function () {
+  if (navigator.onLine === false) { App.Avvisi.toast('Sei offline: collegati a internet e riprova.', 'avviso'); return; }
+  if (location.protocol.indexOf('http') !== 0) { App.aggiornaApp(); return; }
+  App.Avvisi.toast('Cerco aggiornamenti…', 'info', 2500);
+  fetch('js/config.js?controllo=' + Date.now(), { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error(); return r.text(); })
+    .then(function (t) {
+      var m = t.match(/versione:\s*'([^']+)'/), online = m && m[1];
+      if (!online) throw new Error();
+      if (online === App.Config.versione) App.Avvisi.toast('Hai già l\'ultima versione (v' + online + ').', 'ok', 3500);
+      else { App.Avvisi.toast('Nuova versione v' + online + ': aggiorno…', 'info', 3000); setTimeout(App.aggiornaApp, 600); }
+    })
+    .catch(function () { App.Avvisi.toast('Non riesco a controllare: riprova tra poco.', 'errore', 4000); });
+};
+
 document.addEventListener('DOMContentLoaded', App.avvia);

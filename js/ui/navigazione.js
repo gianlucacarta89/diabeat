@@ -1,7 +1,8 @@
 /* ============================================================
    ui/navigazione.js
    Testata, barra di navigazione in basso e disegno della scheda
-   attiva. Il piè di pagina mostra la versione.
+   attiva. Il piè di pagina mostra la versione e il pulsante
+   "Cerca aggiornamenti".
    Dipende da: App.Config, App.Stato, App.UIGiorno, App.UIArchivio,
                App.UIStatistiche, App.UIImpostazioni.
    Usato da: avvio.js e da chi deve ridisegnare la pagina.
@@ -48,7 +49,10 @@ App.Nav = {
     var c = document.getElementById('contenuto');
     c.innerHTML = '';
     App[s.modulo].disegna(c);
-    c.appendChild(App.Utils.el('<div class="piede">' + App.Utils.esc(App.Config.nome) + ' · v' + App.Config.versione +
-      ' · dati salvati solo su questo dispositivo</div>'));
+    var piede = App.Utils.el('<div class="piede">' + App.Utils.esc(App.Config.nome) + ' · v' + App.Config.versione +
+      ' · dati salvati solo su questo dispositivo' +
+      '<br><button class="btn btn-piccolo btn-neutro" style="margin-top:8px" data-az="aggiorna">🔄 Cerca aggiornamenti</button></div>');
+    piede.querySelector('[data-az=aggiorna]').onclick = function () { App.cercaAggiornamenti(); };
+    c.appendChild(piede);
   }
 };
